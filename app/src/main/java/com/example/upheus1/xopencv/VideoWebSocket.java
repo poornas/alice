@@ -7,7 +7,7 @@ import java.io.UnsupportedEncodingException;
 
 import de.tavendo.autobahn.WebSocketConnection;
 import de.tavendo.autobahn.WebSocketException;
-import de.tavendo.autobahn.WebSocketHandler;
+import de.tavendo.autobahn.WebSocketConnectionHandler;
 import de.tavendo.autobahn.WebSocketOptions;
 
 import static android.content.ContentValues.TAG;
@@ -22,12 +22,12 @@ public class VideoWebSocket {
 
     public void connect() {
         Log.v("========>", "Control here");
-        final String wsuri = "ws://192.168.1.106:8080";
+        final String wsuri = "ws://10.0.0.13:8080";
         final WebSocketOptions webSocketOptions = new WebSocketOptions();
         webSocketOptions.setMaxMessagePayloadSize(100 * 1024 * 1024);
 
         try {
-            mConnection.connect(wsuri, new WebSocketHandler() {
+            mConnection.connect(wsuri, new WebSocketConnectionHandler() {
                 @Override
                 public void onOpen() {
                     Log.d("************>>>>>", "Status: Connected to " + wsuri);

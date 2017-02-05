@@ -17,10 +17,9 @@ import android.view.SurfaceView;
 import android.view.WindowManager;
 
 
-
 public class MainActivity extends Activity implements CvCameraViewListener2 {
     private static final String TAG = "OCVSample::Activity";
-    private  MatVideoWriter matVideoWriter = new MatVideoWriter();
+    private MatVideoWriter matVideoWriter = new MatVideoWriter();
     private CameraBridgeViewBase mOpenCvCameraView;
     private boolean mIsJavaCamera = true;
     private MenuItem mItemSwitchCamera = null;
@@ -69,7 +68,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
         mOpenCvCameraView = (CameraBridgeViewBase) findViewById(R.id.tutorial1_activity_java_surface_view);
 
         mOpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
-
+        mOpenCvCameraView.setMaxFrameSize(640, 480);
         mOpenCvCameraView.setCvCameraViewListener(this);
     }
 
@@ -110,7 +109,6 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
     }
 
     public void onCameraViewStarted(int width, int height) {
-
     }
 
     public void onCameraViewStopped() {
@@ -120,8 +118,6 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
     }
 
     public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
-
-
         if (mat != null) {
             mat.release();
         }
