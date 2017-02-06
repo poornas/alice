@@ -22,7 +22,7 @@ public class VideoWebSocket {
 
     public void connect() {
         Log.v("========>", "Control here");
-        final String wsuri = "ws://10.0.0.13:8080";
+        final String wsuri = "ws://192.168.1.106:8080";
         final WebSocketOptions webSocketOptions = new WebSocketOptions();
         webSocketOptions.setMaxMessagePayloadSize(100 * 1024 * 1024);
 
@@ -31,7 +31,7 @@ public class VideoWebSocket {
                 @Override
                 public void onOpen() {
                     Log.d("************>>>>>", "Status: Connected to " + wsuri);
-                  //  mConnection.sendTextMessage("Hello, world!");
+                    //  mConnection.sendTextMessage("Hello, world!");
                 }
 
                 @Override
@@ -66,16 +66,14 @@ public class VideoWebSocket {
     }
 
     public void sendPayload(byte[] b) {
-
-
-        if(mConnection.isConnected()) {
-            Log.i("************>>>>>","Is connected sending message......");
+        if (mConnection.isConnected()) {
+            Log.i("************>>>>>", "Is connected sending message......");
             mConnection.sendBinaryMessage(b);
         }
     }
 
     public void disconnect() {
-        if(mConnection.isConnected())
+        if (mConnection.isConnected())
             mConnection.disconnect();
     }
 }
