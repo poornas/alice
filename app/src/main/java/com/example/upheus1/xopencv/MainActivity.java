@@ -9,27 +9,25 @@ import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.android.CameraBridgeViewBase;
 import org.opencv.android.CameraBridgeViewBase.CvCameraViewListener2;
-
 import android.app.Activity;
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.util.Log;
-
 import android.view.MenuItem;
 import android.view.SurfaceView;
 import android.view.WindowManager;
-
 import java.io.ByteArrayOutputStream;
 
+ 
 
 public class MainActivity extends Activity implements CvCameraViewListener2 {
     private static final String TAG = "OCVSample::Activity";
-    private MatVideoWriter matVideoWriter = new MatVideoWriter();
+    private MatVideoWriter matVideoWriter;
     private CameraBridgeViewBase mOpenCvCameraView;
-    private boolean mIsJavaCamera = true;
-    private MenuItem mItemSwitchCamera = null;
-    public static VideoWebSocket videoWebSocket = null;
 
+    public static VideoWebSocket videoWebSocket = null;
+    public static Context context;
     VideoTask vTask;
     Mat src;
 
@@ -54,26 +52,23 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
         Log.i(TAG, "Instantiated new " + this.getClass());
     }
 
-    /**
-     * Called when the activity is first created.
-     */
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
-        Log.i("====================>>>>>>", "called onCreate");
+
         super.onCreate(savedInstanceState);
+        context = this;
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-
+        matVideoWriter = new MatVideoWriter(context);
         setContentView(R.layout.activity_main);
-
 
         if (videoWebSocket == null) {
             videoWebSocket = new VideoWebSocket();
-            videoWebSocket.connect();
+            videoWebSocket.connect(context);
 
         }
 
         mOpenCvCameraView = (CameraBridgeViewBase) findViewById(R.id.tutorial1_activity_java_surface_view);
-
         mOpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
         mOpenCvCameraView.setMaxFrameSize(320, 240);
         mOpenCvCameraView.setCvCameraViewListener(this);
@@ -82,19 +77,18 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
     @Override
     public void onPause() {
         super.onPause();
-        Log.i("====================>>>>>>", "called onPause");
         if (mOpenCvCameraView != null)
             mOpenCvCameraView.disableView();
     }
 
     @Override
     public void onResume() {
-        Log.i("====================>>>>>>", "called onResume");
+
         super.onResume();
 
         if (videoWebSocket == null) {
             videoWebSocket = new VideoWebSocket();
-            videoWebSocket.connect();
+            videoWebSocket.connect(context);
         }
         if (!OpenCVLoader.initDebug()) {
             Log.d(TAG, "Internal OpenCV library not found. Using OpenCV Manager for initialization");
@@ -110,7 +104,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
         super.onDestroy();
         if (mOpenCvCameraView != null)
             mOpenCvCameraView.disableView();
-        //videoWebSocket.disconnect();
+
     }
 
     public void onCameraViewStarted(int width, int height) {
@@ -120,28 +114,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
         if (src != null) {
             src.release();
         }
-    }
-
-    private byte[] captureBitmap(Mat mat) {
-        Bitmap bitmap;
-        try {
-            bitmap = Bitmap.createBitmap(mat.cols(), mat.rows(), Bitmap.Config.ARGB_8888);
-            Utils.matToBitmap(mat, bitmap);
-
-            ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
-            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, byteStream);
-
-            // Convert ByteArrayOutputStream to byte array. Close stream.
-            byte[] byteArray = byteStream.toByteArray();
-            byteStream.close();
-            byteStream = null;
-            return byteArray;
-            // mBitmap.setImageBitmap(bitmap);
-            //mBitmap.invalidate();
-        } catch (Exception ex) {
-            System.out.println(ex.getMessage());
-        }
-        return null;
+        matVideoWriter.stopRecording();    
     }
 
     public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
@@ -149,19 +122,10 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
             src.release();
         }
         src = inputFrame.rgba();
-        //  For later .... if(matVideoWriter.isRecording()) {
-        // ignore.. matVideoWriter.write(matcopy, videoWebSocket);
-        try {
-            vTask = new VideoTask(captureBitmap(src));
-            vTask.execute();
-            // test if the frames are written to sd card. FileUtils.writeByteArrayToFile(file, buffer);
-        } catch (Exception e) {
-            e.printStackTrace();
+ 
+        if(matVideoWriter.isRecording()) {
+            matVideoWriter.write(src, videoWebSocket);
         }
-
-        Log.v("DONE ----", "Finished now");
-        // }
-
         return src;
     }
 }

@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">XOpenCV</string>
+    <string name="xray_broadcast">XRayCast</string>
 </resources>
