@@ -45,7 +45,7 @@ public class VideoWebSocket {
                 @Override
                 public void onTextMessage(String payload) {
                     Log.i("************>>>>>", "Got echo: " + payload);
-                    broadcastIntent(payload);
+                    //broadcastIntent(payload);
 
                 }
 

@@ -13,10 +13,14 @@ import android.app.Activity;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.SurfaceView;
 import android.view.WindowManager;
+import android.widget.EditText;
+
 import java.io.ByteArrayOutputStream;
 
  
@@ -28,8 +32,9 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 
     public static VideoWebSocket videoWebSocket = null;
     public static Context context;
+
     VideoTask vTask;
-    Mat src;
+    Mat srcMat;
 
     private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
         @Override
@@ -68,11 +73,15 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 
         }
 
-        mOpenCvCameraView = (CameraBridgeViewBase) findViewById(R.id.tutorial1_activity_java_surface_view);
+        mOpenCvCameraView = (CameraBridgeViewBase) findViewById(R.id.xray_activity_java_surface_view);
         mOpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
         mOpenCvCameraView.setMaxFrameSize(320, 240);
         mOpenCvCameraView.setCvCameraViewListener(this);
+
+
+
     }
+
 
     @Override
     public void onPause() {
@@ -108,24 +117,25 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
     }
 
     public void onCameraViewStarted(int width, int height) {
+        srcMat = new Mat();
     }
 
     public void onCameraViewStopped() {
-        if (src != null) {
-            src.release();
+        if (srcMat != null) {
+            srcMat.release();
         }
         matVideoWriter.stopRecording();    
     }
 
     public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
-        if (src != null) {
-            src.release();
+        if (srcMat != null) {
+            srcMat.release();
         }
-        src = inputFrame.rgba();
+        srcMat = inputFrame.rgba();
  
         if(matVideoWriter.isRecording()) {
-            matVideoWriter.write(src, videoWebSocket);
+            matVideoWriter.write(srcMat, videoWebSocket);
         }
-        return src;
+        return srcMat;
     }
 }

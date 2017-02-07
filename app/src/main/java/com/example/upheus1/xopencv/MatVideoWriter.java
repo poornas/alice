@@ -30,6 +30,7 @@ public class MatVideoWriter {
         VideoTask vTask;
         Context context;
         Mat mat;
+        byte[] matByteArray;
 
         public  MatVideoWriter(Context context) {
             this.context = context;
@@ -52,11 +53,11 @@ public class MatVideoWriter {
                 bitmap.compress(Bitmap.CompressFormat.JPEG, 100, byteStream);
 
                 // Convert ByteArrayOutputStream to byte array. Close stream.
-                byte[] byteArray = byteStream.toByteArray();
+                matByteArray = byteStream.toByteArray();
                 byteStream.close();
                 byteStream = null;
                 //mat.release();
-                return byteArray;
+                return matByteArray;
 
             } catch (Exception ex) {
                 System.out.println(ex.getMessage());
@@ -67,10 +68,10 @@ public class MatVideoWriter {
         // Formats Mat Object to Raw Byte Array.
         private byte[] captureRawBytes(Mat mat) {
             int length = (int) (mat.total() * mat.elemSize());
-            byte buffer[] = new byte[length];
-            mat.get(0, 0, buffer);
+            matByteArray = new byte[length];
+            mat.get(0, 0, matByteArray);
 
-            return buffer;
+            return matByteArray;
         }
 
         public boolean isRecording() {
@@ -81,6 +82,7 @@ public class MatVideoWriter {
         public void stopRecording() {
             recording = false;
             vTask = null;
+            matByteArray = null;
         }
 
 
