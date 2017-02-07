@@ -28,7 +28,9 @@ public class VideoWebSocket {
     public void connect(Context context) {
         this.context = context;
         Log.v("========>", "Control here");
+
         final String wsuri = "ws://192.168.1.225:8080";
+
         final WebSocketOptions webSocketOptions = new WebSocketOptions();
         webSocketOptions.setMaxMessagePayloadSize(100 * 1024 * 1024);
 

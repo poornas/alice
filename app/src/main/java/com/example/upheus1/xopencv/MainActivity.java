@@ -9,21 +9,17 @@ import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.android.CameraBridgeViewBase;
 import org.opencv.android.CameraBridgeViewBase.CvCameraViewListener2;
-
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.util.Log;
-
 import android.view.MenuItem;
 import android.view.SurfaceView;
 import android.view.WindowManager;
-
 import java.io.ByteArrayOutputStream;
 
-import static org.opencv.ml.SVM.C;
-
+ 
 
 public class MainActivity extends Activity implements CvCameraViewListener2 {
     private static final String TAG = "OCVSample::Activity";
@@ -74,6 +70,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 
         mOpenCvCameraView = (CameraBridgeViewBase) findViewById(R.id.tutorial1_activity_java_surface_view);
         mOpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
+        mOpenCvCameraView.setMaxFrameSize(320, 240);
         mOpenCvCameraView.setCvCameraViewListener(this);
     }
 
@@ -117,20 +114,18 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
         if (src != null) {
             src.release();
         }
-        matVideoWriter.stopRecording();
+        matVideoWriter.stopRecording();    
     }
-
-
 
     public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
         if (src != null) {
             src.release();
         }
         src = inputFrame.rgba();
+ 
         if(matVideoWriter.isRecording()) {
             matVideoWriter.write(src, videoWebSocket);
         }
-
         return src;
     }
 }
