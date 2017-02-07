@@ -12,7 +12,8 @@ import org.opencv.core.Mat;
 import java.net.Socket;
 
 /**
- * Created by Upheus1 on 1/22/17.
+ * Created by deekoder on 1/22/17.
+ * AsyncTask that sends the video buffer over to the Xray Server.
  */
 
 public class VideoTask extends AsyncTask<Void, Integer, String> {
@@ -38,8 +39,6 @@ public class VideoTask extends AsyncTask<Void, Integer, String> {
 
         Log.i("-->",String.valueOf(bufmat.length));
         if(MainActivity.videoWebSocket != null) {
-            Log.i("=========>>","Socket is alive");
-
             MainActivity.videoWebSocket.sendPayload(bufmat);
 
         }
