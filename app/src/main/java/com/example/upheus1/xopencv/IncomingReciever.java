@@ -23,7 +23,6 @@ package com.example.upheus1.xopencv;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.util.Log;
 import android.widget.Toast;
 
 /**
@@ -36,8 +35,6 @@ public class IncomingReciever extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
-
-        Log.i("--->", "Sending Toast");
 
         String msg = intent.getStringExtra(String.valueOf(R.string.xray_broadcast));
         Toast.makeText(context, msg, Toast.LENGTH_SHORT).show();

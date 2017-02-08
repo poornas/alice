@@ -22,20 +22,11 @@ package com.example.upheus1.xopencv;
 
 import android.content.Context;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.media.Image;
-import android.util.Log;
 
 import org.opencv.android.Utils;
 import org.opencv.core.Mat;
-import org.opencv.imgproc.Imgproc;
 
 import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.IOException;
-
-import static android.R.attr.path;
-import static android.R.attr.type;
 
 /**
  * MatVideoWriter is responsible for managing conversion formats and dispatching a VideoTask
@@ -73,8 +64,6 @@ public class MatVideoWriter {
                 // Convert ByteArrayOutputStream to byte array. Close stream.
                 matByteArray = byteStream.toByteArray();
                 byteStream.close();
-                byteStream = null;
-                //mat.release();
                 return matByteArray;
 
             } catch (Exception ex) {
@@ -88,7 +77,6 @@ public class MatVideoWriter {
             int length = (int) (mat.total() * mat.elemSize());
             matByteArray = new byte[length];
             mat.get(0, 0, matByteArray);
-
             return matByteArray;
         }
 

@@ -23,16 +23,11 @@ package com.example.upheus1.xopencv;
 import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
-import android.view.View;
-
-import java.io.UnsupportedEncodingException;
 
 import de.tavendo.autobahn.WebSocketConnection;
-import de.tavendo.autobahn.WebSocketException;
 import de.tavendo.autobahn.WebSocketConnectionHandler;
+import de.tavendo.autobahn.WebSocketException;
 import de.tavendo.autobahn.WebSocketOptions;
-
-import static android.content.ContentValues.TAG;
 
 /**
  * VideoWebSocket is responsible for connecting to the Xray server.
@@ -45,7 +40,6 @@ public class VideoWebSocket {
 
     public void connect(Context context) {
         this.context = context;
-        Log.v("========>", "Control here");
 
         final String wsuri = "ws://192.168.1.225:8080";
 
@@ -56,13 +50,13 @@ public class VideoWebSocket {
             mConnection.connect(wsuri, new WebSocketConnectionHandler() {
                 @Override
                 public void onOpen() {
-                    Log.d("************>>>>>", "Status: Connected to " + wsuri);
-                    //  mConnection.sendTextMessage("Hello, world!");
+                    Log.d(String.valueOf(R.string.TAG), "Status: Connected to " + wsuri);
+
                 }
 
                 @Override
                 public void onTextMessage(String payload) {
-                    Log.i("************>>>>>", "Got echo: " + payload);
+                    Log.i(String.valueOf(R.string.TAG), "Recieved: " + payload);
                     //broadcastIntent(payload);
 
                 }
@@ -70,8 +64,7 @@ public class VideoWebSocket {
                 @Override
                 public void onRawTextMessage(byte[] payload) {
                     try {
-                        //rawText = new String(payload, "UTF-8");
-                        Log.i("************>>>>>", "ON RAW TEXT");
+                        String rawText = new String(payload, "UTF-8");
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -79,24 +72,22 @@ public class VideoWebSocket {
 
                 @Override
                 public void onBinaryMessage(byte[] payload) {
-                    Log.i("************>>>>>", "ON BINARY MESSAGE");
 
                 }
 
                 @Override
                 public void onClose(int code, String reason) {
-                    Log.d("************>>>>>", "Connection lost.");
+                    Log.d(String.valueOf(R.string.TAG), "Connection lost.");
                 }
             }, webSocketOptions);
         } catch (WebSocketException e) {
 
-            Log.d("************>>>>>", e.toString());
+            Log.d(String.valueOf(R.string.TAG), e.toString());
         }
     }
 
     public void sendPayload(byte[] b) {
         if (mConnection.isConnected()) {
-            Log.i("************>>>>>", "Is connected sending message......");
             mConnection.sendBinaryMessage(b);
             b = null;
         }
