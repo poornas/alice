@@ -1,3 +1,23 @@
+/*
+ * Copyright (c) 2017 Minio, Inc. <https://www.minio.io>
+ *
+ * This file is part of Alice.
+ *
+ * Alice is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ *
+ */
+
 package com.example.upheus1.xopencv;
 
 import android.app.ProgressDialog;
@@ -12,7 +32,6 @@ import org.opencv.core.Mat;
 import java.net.Socket;
 
 /**
- * Created by deekoder on 1/22/17.
  * AsyncTask that sends the video buffer over to the Xray Server.
  */
 
@@ -70,4 +89,3 @@ public class VideoTask extends AsyncTask<Void, Integer, String> {
 
     }
 }
-
