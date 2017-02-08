@@ -18,29 +18,26 @@
  *
  */
 
-package com.example.upheus1.xopencv;
+package com.minio.io.alice;
 
+import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.support.test.InstrumentationRegistry;
-import android.support.test.runner.AndroidJUnit4;
-
-import org.junit.Test;
-import org.junit.runner.RunWith;
-
-import static org.junit.Assert.*;
+import android.content.Intent;
+import android.widget.Toast;
 
 /**
- * Instrumentation test, which will execute on an Android device.
- *
- * @see <a href="http://d.android.com/tools/testing">Testing documentation</a>
+ * Incoming Reciever reacts to messages coming back from the XRay Server. It can toast or to Text2Speech readout of the response.
  */
-@RunWith(AndroidJUnit4.class)
-public class ExampleInstrumentedTest {
-    @Test
-    public void useAppContext() throws Exception {
-        // Context of the app under test.
-        Context appContext = InstrumentationRegistry.getTargetContext();
 
-        assertEquals("com.example.upheus1.xopencv", appContext.getPackageName());
+public class IncomingReciever extends BroadcastReceiver {
+    public IncomingReciever() {
+    }
+
+    @Override
+    public void onReceive(Context context, Intent intent) {
+
+        String msg = intent.getStringExtra(String.valueOf(R.string.xray_broadcast));
+        Toast.makeText(context, msg, Toast.LENGTH_SHORT).show();
+
     }
 }

@@ -18,7 +18,7 @@
  *
  */
 
-package com.example.upheus1.xopencv;
+package com.minio.io.alice;
 
 import android.content.Context;
 import android.graphics.Bitmap;

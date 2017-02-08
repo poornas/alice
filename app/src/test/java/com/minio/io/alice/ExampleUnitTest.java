@@ -18,26 +18,20 @@
  *
  */
 
-package com.example.upheus1.xopencv;
+package com.minio.io.alice;
 
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
-import android.widget.Toast;
+import org.junit.Test;
+
+import static org.junit.Assert.*;
 
 /**
- * Incoming Reciever reacts to messages coming back from the XRay Server. It can toast or to Text2Speech readout of the response.
+ * Example local unit test, which will execute on the development machine (host).
+ *
+ * @see <a href="http://d.android.com/tools/testing">Testing documentation</a>
  */
-
-public class IncomingReciever extends BroadcastReceiver {
-    public IncomingReciever() {
-    }
-
-    @Override
-    public void onReceive(Context context, Intent intent) {
-
-        String msg = intent.getStringExtra(String.valueOf(R.string.xray_broadcast));
-        Toast.makeText(context, msg, Toast.LENGTH_SHORT).show();
-
+public class ExampleUnitTest {
+    @Test
+    public void addition_isCorrect() throws Exception {
+        assertEquals(4, 2 + 2);
     }
 }
