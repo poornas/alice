@@ -37,7 +37,8 @@
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name="com.minio.io.alice.MainActivity">
+        <activity android:name=".MainActivity"
+                  android:screenOrientation="landscape">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -46,7 +47,7 @@
         </activity>
 
         <receiver
-            android:name="com.minio.io.alice.IncomingReciever"
+            android:name=".IncomingReciever"
             android:enabled="true"
             android:exported="false">
             <intent-filter>
