@@ -47,11 +47,11 @@
         </activity>
 
         <receiver
-            android:name=".IncomingReciever"
+            android:name=".IncomingReceiver"
             android:enabled="true"
             android:exported="false">
             <intent-filter>
-                <action android:name="com.example.upheus1.xopencv.xray_broadcast" >
+                <action android:name="com.minio.io.alice.xray_broadcast" >
                 </action>
             </intent-filter>
         </receiver>

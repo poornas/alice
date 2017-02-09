@@ -44,7 +44,6 @@ public class VideoTask extends AsyncTask<Void, Integer, String> {
     @Override
     protected String doInBackground(Void ... params) {
 
-        Log.i("-->",String.valueOf(bufmat.length));
         if(MainActivity.videoWebSocket != null) {
             MainActivity.videoWebSocket.sendPayload(bufmat);
 

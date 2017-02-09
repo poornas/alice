@@ -50,14 +50,14 @@ public class VideoWebSocket {
             mConnection.connect(wsuri, new WebSocketConnectionHandler() {
                 @Override
                 public void onOpen() {
-                    Log.d(String.valueOf(R.string.TAG), "Status: Connected to " + wsuri);
+                    Log.d(MainActivity.TAG, "Status: Connected to " + wsuri);
 
                 }
 
                 @Override
                 public void onTextMessage(String payload) {
-                    Log.i(String.valueOf(R.string.TAG), "Recieved: " + payload);
-                    //broadcastIntent(payload);
+                    //Log.i(MainActivity.TAG, "Recieved & Broadcasting " + payload);
+                    broadcastIntent(payload);
 
                 }
 
@@ -77,12 +77,12 @@ public class VideoWebSocket {
 
                 @Override
                 public void onClose(int code, String reason) {
-                    Log.d(String.valueOf(R.string.TAG), "Connection lost.");
+                    Log.d(MainActivity.TAG, "Connection lost.");
                 }
             }, webSocketOptions);
         } catch (WebSocketException e) {
 
-            Log.d(String.valueOf(R.string.TAG), e.toString());
+            Log.d(MainActivity.TAG, e.toString());
         }
     }
 
@@ -101,7 +101,7 @@ public class VideoWebSocket {
     public void broadcastIntent(String payload){
         Intent intent = new Intent();
         intent.putExtra(String.valueOf(R.string.xray_broadcast), payload);
-        intent.setAction("com.example.upheus1.xopencv.xray_broadcast");
+        intent.setAction("com.minio.io.alice.xray_broadcast");
         context.sendBroadcast(intent);
     }
 }

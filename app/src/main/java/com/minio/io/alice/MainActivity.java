@@ -36,12 +36,13 @@ import org.opencv.android.OpenCVLoader;
 import org.opencv.core.Mat;
 
 public class MainActivity extends Activity implements CvCameraViewListener2 {
-    private static final String TAG = "OCVSample::Activity";
+
     private MatVideoWriter matVideoWriter;
     private CameraBridgeViewBase mOpenCvCameraView;
 
     public static VideoWebSocket videoWebSocket = null;
     public static Context context;
+    public static String TAG = "__ALICE__";
 
     VideoTask vTask;
     Mat srcMat;
@@ -51,7 +52,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
         public void onManagerConnected(int status) {
             switch (status) {
                 case LoaderCallbackInterface.SUCCESS: {
-                    Log.i(TAG, "OpenCV loaded successfully");
+                    Log.i(MainActivity.TAG, "OpenCV loaded successfully");
                     mOpenCvCameraView.enableView();
                 }
                 break;
@@ -64,7 +65,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
     };
 
     public MainActivity() {
-        Log.i(TAG, "Instantiated new " + this.getClass());
+        Log.i(MainActivity.TAG, "Instantiated new " + this.getClass());
     }
 
 
@@ -108,10 +109,10 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
             videoWebSocket.connect(context);
         }
         if (!OpenCVLoader.initDebug()) {
-            Log.d(TAG, "Internal OpenCV library not found. Using OpenCV Manager for initialization");
+            Log.d(MainActivity.TAG, "Internal OpenCV library not found. Using OpenCV Manager for initialization");
             OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_3_0_0, this, mLoaderCallback);
         } else {
-            Log.d(TAG, "OpenCV library found inside package. Using it!");
+            Log.d(MainActivity.TAG, "OpenCV library found inside package. Using it!");
             mLoaderCallback.onManagerConnected(LoaderCallbackInterface.SUCCESS);
         }
 
