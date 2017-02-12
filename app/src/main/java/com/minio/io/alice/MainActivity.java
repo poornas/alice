@@ -34,6 +34,8 @@ import org.opencv.android.CameraBridgeViewBase.CvCameraViewListener2;
 import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
 import org.opencv.core.Mat;
+import org.opencv.imgproc.Imgproc;
+
 
 public class MainActivity extends Activity implements CvCameraViewListener2 {
 
@@ -43,8 +45,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
     public static VideoWebSocket videoWebSocket = null;
     public static Context context;
     public static String TAG = "__ALICE__";
-
-    VideoTask vTask;
+    public static XPly serverReply;
     Mat srcMat;
 
     private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
@@ -140,6 +141,9 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
     }
 
     public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
+        if(serverReply != null) {
+            serverReply = null;
+        }
         if (srcMat != null) {
             srcMat.release();
         }
@@ -148,6 +152,11 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
         if(matVideoWriter.isRecording()) {
             matVideoWriter.write(srcMat, videoWebSocket);
         }
+        if(serverReply != null)
+            Imgproc.rectangle(srcMat,serverReply.getP1(), serverReply.getP2(), serverReply.getScalar());
+
         return srcMat;
     }
+
+
 }

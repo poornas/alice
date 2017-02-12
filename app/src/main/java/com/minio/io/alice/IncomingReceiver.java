@@ -23,14 +23,14 @@ package com.minio.io.alice;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.util.Log;
-import android.widget.Toast;
 
 /**
- * Incoming Reciever reacts to messages coming back from the XRay Server. It can toast or to Text2Speech readout of the response.
+ * Incoming Reciever reacts to messages coming back from the XRay Server. It broadcasts Xray server's response.
  */
 
 public class IncomingReceiver extends BroadcastReceiver {
+
+
     public IncomingReceiver() {
     }
 
@@ -38,8 +38,7 @@ public class IncomingReceiver extends BroadcastReceiver {
     public void onReceive(Context context, Intent intent) {
 
         String msg = intent.getStringExtra(String.valueOf(R.string.xray_broadcast));
-        /* Need this statement till we attach a bounding box system to this broadcast.
-        Log.i(MainActivity.TAG, msg);
-        */
+        MainActivity.serverReply = new XPly(msg);
+
     }
 }

@@ -30,7 +30,7 @@ import java.io.ByteArrayOutputStream;
 
 /**
  * MatVideoWriter is responsible for managing conversion formats and dispatching a VideoTask
- * which will inturn connect to the XRay Server and stream data.
+ * which will inturn connect to the Xray Server and stream data.
  */
 
 public class MatVideoWriter {
