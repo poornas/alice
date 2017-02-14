@@ -25,7 +25,10 @@ import android.content.Context;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.SurfaceView;
+import android.view.View;
 import android.view.WindowManager;
+import android.widget.Button;
+import android.widget.SeekBar;
 
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.CameraBridgeViewBase;
@@ -36,11 +39,13 @@ import org.opencv.android.OpenCVLoader;
 import org.opencv.core.Mat;
 import org.opencv.imgproc.Imgproc;
 
+import static com.minio.io.alice.R.id.ZoomCameraView;
+
 
 public class MainActivity extends Activity implements CvCameraViewListener2 {
 
     private MatVideoWriter matVideoWriter;
-    private CameraBridgeViewBase mOpenCvCameraView;
+    private ZoomCameraView mOpenCvCameraView;
 
     public static VideoWebSocket videoWebSocket = null;
     public static Context context;
@@ -85,10 +90,14 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 
         }
 
-        mOpenCvCameraView = (CameraBridgeViewBase) findViewById(R.id.xray_activity_java_surface_view);
+        mOpenCvCameraView = (ZoomCameraView) findViewById(R.id.ZoomCameraView);
         mOpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
+        mOpenCvCameraView.setZoomControl((SeekBar) findViewById(R.id.CameraZoomControls));
+
         mOpenCvCameraView.setMaxFrameSize(320, 240);
         mOpenCvCameraView.setCvCameraViewListener(this);
+
+
 
     }
 

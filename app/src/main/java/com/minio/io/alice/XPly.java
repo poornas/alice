@@ -52,7 +52,8 @@ public class XPly {
         }
 
         try {
-            positions = replyObject.getJSONArray("Positions");
+            if(!replyObject.isNull("Positions"))
+                positions = replyObject.getJSONArray("Positions");
 
             for (int i=0; i< positions.length(); i++) {
                 int x1 = positions.getJSONObject(i).getJSONObject("PT1").getInt("X");
