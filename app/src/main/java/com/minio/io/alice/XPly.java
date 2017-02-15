@@ -20,6 +20,8 @@
 
 package com.minio.io.alice;
 
+import android.util.Log;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -37,22 +39,21 @@ public class XPly {
     private int thickness;
     private int linetype;
     private int shift;
+    private int zoom;
+    private boolean display;
 
     JSONObject replyObject = null;
     JSONArray positions;
 
-
     public XPly(String replyMessage) {
-
-
         try {
             replyObject = new JSONObject(replyMessage) ;
         } catch (JSONException e) {
             e.printStackTrace();
         }
-
         try {
             if(!replyObject.isNull("Positions"))
+
                 positions = replyObject.getJSONArray("Positions");
 
             for (int i=0; i< positions.length(); i++) {
@@ -79,8 +80,18 @@ public class XPly {
                 setShift(shift);
             }
 
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
 
+        try {
+            setDisplay(replyObject.getBoolean("Display"));
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
 
+        try {
+            setZoom(replyObject.getInt("Zoom"));
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -134,5 +145,21 @@ public class XPly {
         this.shift = shift;
     }
 
+    public int getZoom() {
+        return zoom;
+    }
 
+    public void setZoom(int zoom) {
+        Log.i(MainActivity.TAG, "Setting Zoom");
+        this.zoom = zoom;
+    }
+
+    public boolean isDisplay() {
+        return display;
+    }
+
+    public void setDisplay(boolean display) {
+        Log.i(MainActivity.TAG, "Setting display");
+        this.display = display;
+    }
 }

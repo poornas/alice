@@ -39,6 +39,7 @@ import org.opencv.android.OpenCVLoader;
 import org.opencv.core.Mat;
 import org.opencv.imgproc.Imgproc;
 
+import static android.R.color.black;
 import static com.minio.io.alice.R.id.ZoomCameraView;
 
 
@@ -86,6 +87,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 
         if (videoWebSocket == null) {
             videoWebSocket = new VideoWebSocket();
+            Log.i(MainActivity.TAG, "About to connect to WS");
             videoWebSocket.connect(context);
 
         }
@@ -140,6 +142,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 
     public void onCameraViewStarted(int width, int height) {
         srcMat = new Mat();
+
     }
 
     public void onCameraViewStopped() {
@@ -161,10 +164,11 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
         if(matVideoWriter.isRecording()) {
             matVideoWriter.write(srcMat, videoWebSocket);
         }
-        if(serverReply != null)
-            Imgproc.rectangle(srcMat,serverReply.getP1(), serverReply.getP2(), serverReply.getScalar());
-
-        return srcMat;
+        if(serverReply != null) {
+            Imgproc.rectangle(srcMat, serverReply.getP1(), serverReply.getP2(), serverReply.getScalar());
+            mOpenCvCameraView.increaseZoom(serverReply.getZoom());
+        }
+        return  srcMat;
     }
 
 
