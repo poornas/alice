@@ -19,7 +19,7 @@
   -->
 
 <resources>
-    <string name="app_name">XOpenCV</string>
+    <string name="app_name">Alice</string>
     <string name="xray_broadcast">XRayCast</string>
     <string name="COMPLETE">Complete</string>
 
