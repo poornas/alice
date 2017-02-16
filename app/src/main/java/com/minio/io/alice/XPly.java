@@ -20,8 +20,6 @@
 
 package com.minio.io.alice;
 
-import android.util.Log;
-
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -150,7 +148,6 @@ public class XPly {
     }
 
     public void setZoom(int zoom) {
-        Log.i(MainActivity.TAG, "Setting Zoom");
         this.zoom = zoom;
     }
 
@@ -159,7 +156,6 @@ public class XPly {
     }
 
     public void setDisplay(boolean display) {
-        Log.i(MainActivity.TAG, "Setting display");
         this.display = display;
     }
 }

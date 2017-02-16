@@ -20,44 +20,12 @@
 
 package com.minio.io.alice;
 
-import android.os.AsyncTask;
 
-/**
- * AsyncTask that sends the video buffer over to the Xray Server.
- */
+// On off switch for enabling log messages. Filter out in android studio with "__ALICE__"
 
-public class VideoTask extends AsyncTask<Void, Integer, String> {
+public class XDebug {
+
+    public  static  final boolean LOG = false;
 
 
-    byte[] bufmat;
-
-    public VideoTask(byte[] buf) {
-        bufmat = buf;
-    }
-
-    @Override
-    protected void onPreExecute() {
-
-    }
-
-    @Override
-    protected String doInBackground(Void ... params) {
-
-        if(MainActivity.videoWebSocket != null) {
-            MainActivity.videoWebSocket.sendPayload(bufmat);
-
-        }
-        bufmat = null;
-        return String.valueOf(R.string.COMPLETE);
-
-    }
-
-    @Override
-    protected void onCancelled() {
-
-    }
-
-    protected void onPostExecute(String finish) {
-
-    }
 }

@@ -50,12 +50,13 @@ public class VideoWebSocket {
             mConnection.connect(wsuri, new WebSocketConnectionHandler() {
                 @Override
                 public void onOpen() {
-                    Log.d(MainActivity.TAG, "Status: Connected to " + wsuri);
+                    if(XDebug.LOG)
+                        Log.d(MainActivity.TAG, "Status: Connected to " + wsuri);
 
                 }
 
                 @Override
-                public void onTextMessage(String payload) {
+                public void onTextMessage (String payload) {
                     broadcastIntent(payload);
 
                 }
@@ -76,7 +77,8 @@ public class VideoWebSocket {
 
                 @Override
                 public void onClose(int code, String reason) {
-                    Log.d(MainActivity.TAG, "Connection lost.");
+                    if(XDebug.LOG)
+                        Log.d(MainActivity.TAG, "Connection lost.");
                 }
             }, webSocketOptions);
         } catch (WebSocketException e) {

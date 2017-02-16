@@ -25,22 +25,16 @@ import android.content.Context;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.SurfaceView;
-import android.view.View;
 import android.view.WindowManager;
-import android.widget.Button;
 import android.widget.SeekBar;
 
 import org.opencv.android.BaseLoaderCallback;
-import org.opencv.android.CameraBridgeViewBase;
 import org.opencv.android.CameraBridgeViewBase.CvCameraViewFrame;
 import org.opencv.android.CameraBridgeViewBase.CvCameraViewListener2;
 import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
 import org.opencv.core.Mat;
 import org.opencv.imgproc.Imgproc;
-
-import static android.R.color.black;
-import static com.minio.io.alice.R.id.ZoomCameraView;
 
 
 public class MainActivity extends Activity implements CvCameraViewListener2 {
@@ -59,7 +53,8 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
         public void onManagerConnected(int status) {
             switch (status) {
                 case LoaderCallbackInterface.SUCCESS: {
-                    Log.i(MainActivity.TAG, "OpenCV loaded successfully");
+                    if(XDebug.LOG)
+                        Log.i(MainActivity.TAG, "OpenCV loaded successfully");
                     mOpenCvCameraView.enableView();
                 }
                 break;
@@ -72,7 +67,8 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
     };
 
     public MainActivity() {
-        Log.i(MainActivity.TAG, "Instantiated new " + this.getClass());
+        if(XDebug.LOG)
+            Log.i(MainActivity.TAG, "Instantiated new " + this.getClass());
     }
 
 
@@ -87,7 +83,6 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 
         if (videoWebSocket == null) {
             videoWebSocket = new VideoWebSocket();
-            Log.i(MainActivity.TAG, "About to connect to WS");
             videoWebSocket.connect(context);
 
         }
@@ -121,10 +116,12 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
             videoWebSocket.connect(context);
         }
         if (!OpenCVLoader.initDebug()) {
-            Log.d(MainActivity.TAG, "Internal OpenCV library not found. Using OpenCV Manager for initialization");
+            if(XDebug.LOG)
+                Log.d(MainActivity.TAG, "Internal OpenCV library not found. Using OpenCV Manager for initialization");
             OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_3_0_0, this, mLoaderCallback);
         } else {
-            Log.d(MainActivity.TAG, "OpenCV library found inside package. Using it!");
+            if(XDebug.LOG)
+                Log.d(MainActivity.TAG, "OpenCV library found inside package. Using it!");
             mLoaderCallback.onManagerConnected(LoaderCallbackInterface.SUCCESS);
         }
 
