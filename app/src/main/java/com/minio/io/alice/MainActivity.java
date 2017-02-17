@@ -155,9 +155,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
     }
 
     public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
-        if(serverReply != null) {
-            serverReply = null;
-        }
+
         if (srcMat != null) {
             srcMat.release();
         }
@@ -168,25 +166,36 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
             matVideoWriter.write(srcMat, videoWebSocket);
         }
         if(serverReply != null) {
-            Imgproc.rectangle(srcMat, serverReply.getP1(), serverReply.getP2(), serverReply.getScalar(), serverReply.getThickness());
 
-            mOpenCvCameraView.increaseZoom(serverReply.getZoom());
+            if(serverReply.isReply() == true) {
+                Imgproc.rectangle(srcMat, serverReply.getP1(), serverReply.getP2(), serverReply.getScalar(), serverReply.getThickness());
+                if (serverReply.getZoom() != 0)
+                    mOpenCvCameraView.increaseZoom(serverReply.getZoom());
+            }
 
-            if(serverReply.getDisplay()) {
-                // Server right now always replies with true for Display.
+            if (serverReply.getDisplay()) {
+                // Wake up if the display is set to true
+                if (XDebug.LOG)
+                        Log.i(MainActivity.TAG, " Alice Wakes up");
                 return srcMat;
-            }
-            else {
-
-                // return a black mat when server replies with false param for Display.
+            } else {
+                if (XDebug.LOG)
+                    Log.i(MainActivity.TAG, "Alice Sleeps");
+                // return a black mat when server replies with false for Display.
                 blackMat = srcMat.clone();
-                blackMat.setTo(new Scalar(0,0,0));
-                return  blackMat;
-
+                blackMat.setTo(new Scalar(0, 0, 0));
+                return blackMat;
             }
-
         }
-        return srcMat;
+        else {
+            // return black frame unless woken up explicitly by server.
+            blackMat = srcMat.clone();
+            blackMat.setTo(new Scalar(0,0,0));
+            return blackMat;
+        }
+
+
+
     }
 
 

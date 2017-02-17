@@ -38,46 +38,53 @@ public class XPly {
     private int linetype;
     private int shift;
     private int zoom;
-    private boolean display;
+    private boolean display = false;
 
     JSONObject replyObject = null;
     JSONArray positions;
+    private static boolean isReply = false;
 
     public XPly(String replyMessage) {
+
         try {
             replyObject = new JSONObject(replyMessage) ;
         } catch (JSONException e) {
             e.printStackTrace();
         }
         try {
-            if(!replyObject.isNull("Positions"))
+            if(!replyObject.isNull("Positions")) {
 
                 positions = replyObject.getJSONArray("Positions");
 
-            for (int i=0; i< positions.length(); i++) {
-                int x1 = positions.getJSONObject(i).getJSONObject("PT1").getInt("X");
-                int y1 = positions.getJSONObject(i).getJSONObject("PT1").getInt("Y");
+                if(positions.length() > 1 )
+                    isReply = true;
+                for (int i = 0; i < positions.length(); i++) {
+                    int x1 = positions.getJSONObject(i).getJSONObject("PT1").getInt("X");
+                    int y1 = positions.getJSONObject(i).getJSONObject("PT1").getInt("Y");
 
-                setP1(x1,y1);
+                    setP1(x1, y1);
 
-                int x2 = positions.getJSONObject(i).getJSONObject("PT2").getInt("X");
-                int y2 = positions.getJSONObject(i).getJSONObject("PT2").getInt("Y");
+                    int x2 = positions.getJSONObject(i).getJSONObject("PT2").getInt("X");
+                    int y2 = positions.getJSONObject(i).getJSONObject("PT2").getInt("Y");
 
-                setP2(x2,y2);
+                    setP2(x2, y2);
 
-                double scalar = positions.getJSONObject(i).getInt("Scalar");
-                setScalar(scalar);
+                    double scalar = positions.getJSONObject(i).getInt("Scalar");
+                    setScalar(scalar);
 
-                int thickness = positions.getJSONObject(i).getInt("Thickness");
-                setThickness(thickness);
+                    int thickness = positions.getJSONObject(i).getInt("Thickness");
+                    setThickness(thickness);
 
-                int linetype = positions.getJSONObject(i).getInt("LineType");
-                setLinetype(linetype);
+                    int linetype = positions.getJSONObject(i).getInt("LineType");
+                    setLinetype(linetype);
 
-                int shift = positions.getJSONObject(i).getInt("Shift");
-                setShift(shift);
+                    int shift = positions.getJSONObject(i).getInt("Shift");
+                    setShift(shift);
+                }
             }
-
+            else {
+                isReply = false;
+            }
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -93,6 +100,10 @@ public class XPly {
         } catch (JSONException e) {
             e.printStackTrace();
         }
+    }
+
+    public static boolean isReply() {
+        return isReply;
     }
 
     public Point getP1() {

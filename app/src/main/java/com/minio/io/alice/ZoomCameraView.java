@@ -57,6 +57,7 @@ public class ZoomCameraView extends JavaCameraView {
                 progressvalue = progress;
                 Camera.Parameters params = mCamera.getParameters();
                 params.setZoom(progress);
+                params.setPreviewFrameRate(25);
                 mCamera.setParameters(params);
 
 
