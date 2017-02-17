@@ -151,7 +151,7 @@ public class XPly {
         this.zoom = zoom;
     }
 
-    public boolean isDisplay() {
+    public boolean getDisplay() {
         return display;
     }
 

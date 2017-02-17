@@ -34,6 +34,7 @@ import org.opencv.android.CameraBridgeViewBase.CvCameraViewListener2;
 import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
 import org.opencv.core.Mat;
+import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
 
 
@@ -46,7 +47,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
     public static Context context;
     public static String TAG = "__ALICE__";
     public static XPly serverReply;
-    Mat srcMat;
+    Mat srcMat, blackMat;
 
     private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
         @Override
@@ -90,7 +91,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
         mOpenCvCameraView = (ZoomCameraView) findViewById(R.id.ZoomCameraView);
         mOpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
         mOpenCvCameraView.setZoomControl((SeekBar) findViewById(R.id.CameraZoomControls));
-
+        mOpenCvCameraView.enableFpsMeter();
         mOpenCvCameraView.setMaxFrameSize(320, 240);
         mOpenCvCameraView.setCvCameraViewListener(this);
 
@@ -139,12 +140,16 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 
     public void onCameraViewStarted(int width, int height) {
         srcMat = new Mat();
+        blackMat = new Mat();
 
     }
 
     public void onCameraViewStopped() {
         if (srcMat != null) {
             srcMat.release();
+        }
+        if (blackMat != null) {
+            blackMat.release();
         }
         matVideoWriter.stopRecording();
     }
@@ -156,16 +161,32 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
         if (srcMat != null) {
             srcMat.release();
         }
+
         srcMat = inputFrame.rgba();
 
         if(matVideoWriter.isRecording()) {
             matVideoWriter.write(srcMat, videoWebSocket);
         }
         if(serverReply != null) {
-            Imgproc.rectangle(srcMat, serverReply.getP1(), serverReply.getP2(), serverReply.getScalar());
+            Imgproc.rectangle(srcMat, serverReply.getP1(), serverReply.getP2(), serverReply.getScalar(), serverReply.getThickness());
+
             mOpenCvCameraView.increaseZoom(serverReply.getZoom());
+
+            if(serverReply.getDisplay()) {
+                // Server right now always replies with true for Display.
+                return srcMat;
+            }
+            else {
+
+                // return a black mat when server replies with false param for Display.
+                blackMat = srcMat.clone();
+                blackMat.setTo(new Scalar(0,0,0));
+                return  blackMat;
+
+            }
+
         }
-        return  srcMat;
+        return srcMat;
     }
 
 
