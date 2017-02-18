@@ -30,10 +30,10 @@ import de.tavendo.autobahn.WebSocketException;
 import de.tavendo.autobahn.WebSocketOptions;
 
 /**
- * VideoWebSocket is responsible for connecting to the Xray server.
+ * WebSocket is responsible for connecting to the Xray server.
  */
 
-public class VideoWebSocket {
+public class ClientWebSocket {
 
     private WebSocketConnection mConnection = new WebSocketConnection();
     Context context;
@@ -94,6 +94,12 @@ public class VideoWebSocket {
         }
     }
 
+    public void sendPayload(String payload) {
+        if (mConnection.isConnected()) {
+            mConnection.sendTextMessage(payload);
+            payload = null;
+        }
+    }
     public void disconnect() {
         if (mConnection.isConnected())
             mConnection.disconnect();

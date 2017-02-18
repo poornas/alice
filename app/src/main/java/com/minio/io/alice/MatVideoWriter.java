@@ -36,7 +36,7 @@ import java.io.ByteArrayOutputStream;
 public class MatVideoWriter {
 
         boolean recording;
-        VideoTask vTask;
+        AliceTask vTask;
         Context context;
         Mat mat;
         byte[] matByteArray;
@@ -46,8 +46,8 @@ public class MatVideoWriter {
             recording = true;
         }
 
-        public void write(Mat mat, VideoWebSocket videoWebSocket){
-            vTask = new VideoTask(captureBitmap(mat));
+        public void write(Mat mat, ClientWebSocket webSocket){
+            vTask = new AliceTask(captureBitmap(mat));
             vTask.execute();
         }
 

@@ -26,15 +26,21 @@ import android.os.AsyncTask;
  * AsyncTask that sends the video buffer over to the Xray Server.
  */
 
-public class VideoTask extends AsyncTask<Void, Integer, String> {
+public class AliceTask extends AsyncTask<Void, Integer, String> {
 
 
     byte[] bufmat;
+    String data;
+    boolean textPayload = false;
 
-    public VideoTask(byte[] buf) {
+    public AliceTask(byte[] buf) {
         bufmat = buf;
     }
 
+    public AliceTask(String data) {
+        this.data = data;
+        this.textPayload = true;
+    }
     @Override
     protected void onPreExecute() {
 
@@ -43,9 +49,11 @@ public class VideoTask extends AsyncTask<Void, Integer, String> {
     @Override
     protected String doInBackground(Void ... params) {
 
-        if(MainActivity.videoWebSocket != null) {
-            MainActivity.videoWebSocket.sendPayload(bufmat);
-
+        if(MainActivity.webSocket != null) {
+            if (textPayload)
+                MainActivity.webSocket.sendPayload(data);
+            else
+                MainActivity.webSocket.sendPayload(bufmat);
         }
         bufmat = null;
         return String.valueOf(R.string.COMPLETE);

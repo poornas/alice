@@ -43,11 +43,14 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
     private MatVideoWriter matVideoWriter;
     private ZoomCameraView mOpenCvCameraView;
 
-    public static VideoWebSocket videoWebSocket = null;
+    public static ClientWebSocket webSocket = null;
     public static Context context;
     public static String TAG = "__ALICE__";
     public static XPly serverReply;
     Mat srcMat, blackMat;
+
+    protected static LocationTracker locationTracker = null;
+    protected static SensorDataLogger sensorLogger = null;
 
     private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
         @Override
@@ -80,14 +83,20 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
         context = this;
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         matVideoWriter = new MatVideoWriter(context);
+
         setContentView(R.layout.activity_main);
 
-        if (videoWebSocket == null) {
-            videoWebSocket = new VideoWebSocket();
-            videoWebSocket.connect(context);
-
+        if (webSocket == null) {
+            webSocket = new ClientWebSocket();
+            Log.i(MainActivity.TAG, "About to connect to WS");
+            webSocket.connect(context);
         }
-
+        if (locationTracker == null) {
+            locationTracker = new LocationTracker();
+        }
+        if (sensorLogger == null) {
+            sensorLogger = new SensorDataLogger();
+        }
         mOpenCvCameraView = (ZoomCameraView) findViewById(R.id.ZoomCameraView);
         mOpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
         mOpenCvCameraView.setZoomControl((SeekBar) findViewById(R.id.CameraZoomControls));
@@ -112,9 +121,9 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 
         super.onResume();
 
-        if (videoWebSocket == null) {
-            videoWebSocket = new VideoWebSocket();
-            videoWebSocket.connect(context);
+        if (webSocket == null) {
+            webSocket = new ClientWebSocket();
+            webSocket.connect(context);
         }
         if (!OpenCVLoader.initDebug()) {
             if(XDebug.LOG)
@@ -163,7 +172,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
         srcMat = inputFrame.rgba();
 
         if(matVideoWriter.isRecording()) {
-            matVideoWriter.write(srcMat, videoWebSocket);
+            matVideoWriter.write(srcMat, webSocket);
         }
         if(serverReply != null) {
 
@@ -197,6 +206,5 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 
 
     }
-
 
 }
