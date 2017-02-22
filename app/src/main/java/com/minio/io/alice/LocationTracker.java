@@ -121,7 +121,7 @@ public class LocationTracker implements LocationListener {
         if (XDebug.LOG)
             Log.d(MainActivity.TAG,location.toString());
         // Uncomment when server is ready to accept location data
-        //write(location.toString());
+        write(location.toString());
     }
 
     protected void stopLocationUpdates() {
