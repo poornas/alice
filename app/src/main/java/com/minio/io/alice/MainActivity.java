@@ -102,6 +102,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
         mOpenCvCameraView.setZoomControl((SeekBar) findViewById(R.id.CameraZoomControls));
         mOpenCvCameraView.enableFpsMeter();
         mOpenCvCameraView.setMaxFrameSize(320, 240);
+        mOpenCvCameraView.setCameraIndex(1);
         mOpenCvCameraView.setCvCameraViewListener(this);
 
 
@@ -177,19 +178,26 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
         if(serverReply != null) {
 
             if(serverReply.isReply() == true) {
+                if (XDebug.LOG) {
+                    Log.i(MainActivity.TAG, " Alice found someone");
+                }
                 Imgproc.rectangle(srcMat, serverReply.getP1(), serverReply.getP2(), serverReply.getScalar(), serverReply.getThickness());
                 if (serverReply.getZoom() != 0)
                     mOpenCvCameraView.increaseZoom(serverReply.getZoom());
+                return srcMat;
             }
 
             if (serverReply.getDisplay()) {
                 // Wake up if the display is set to true
-                if (XDebug.LOG)
-                        Log.i(MainActivity.TAG, " Alice Wakes up");
+                if (XDebug.LOG) {
+                    Log.i(MainActivity.TAG, " Alice Wakes up");
+                    Log.i(MainActivity.TAG, String.valueOf(serverReply.isReply()));
+                }
                 return srcMat;
             } else {
-                if (XDebug.LOG)
+                if (XDebug.LOG) {
                     Log.i(MainActivity.TAG, "Alice Sleeps");
+                }
                 // return a black mat when server replies with false for Display.
                 blackMat = srcMat.clone();
                 blackMat.setTo(new Scalar(0, 0, 0));
