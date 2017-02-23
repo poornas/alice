@@ -58,7 +58,7 @@ public class SensorDataLogger implements SensorEventListener{
             lastUpdate = System.currentTimeMillis();
             SensorRecord record = new SensorRecord(event);
             //Commented out until server can accept sensor data
-            //write(record.toString());
+            write(record.toString());
         }
     }
 
