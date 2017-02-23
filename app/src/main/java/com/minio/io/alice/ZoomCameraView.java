@@ -28,8 +28,10 @@ import android.widget.SeekBar.OnSeekBarChangeListener;
 
 import org.opencv.android.JavaCameraView;
 
+// All things Camera goes here.
 
 public class ZoomCameraView extends JavaCameraView {
+    private int mCameraId = 0;
     public ZoomCameraView(Context context, int cameraId) {
         super(context, cameraId);
     }
@@ -95,5 +97,12 @@ public class ZoomCameraView extends JavaCameraView {
     }
     public void increaseZoom(int zoomdiff) {
         seekBar.incrementProgressBy(zoomdiff);
+    }
+
+    public void swapCamera() {
+        mCameraId = mCameraId^1;
+        disableView();
+        setCameraIndex(mCameraId);
+        enableView();
     }
 }

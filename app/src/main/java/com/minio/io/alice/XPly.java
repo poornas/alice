@@ -20,8 +20,6 @@
 
 package com.minio.io.alice;
 
-import android.util.Log;
-
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -57,9 +55,7 @@ public class XPly {
             if(!replyObject.isNull("Positions")) {
 
                 positions = replyObject.getJSONArray("Positions");
-                if(XDebug.LOG) {
-                    Log.i(MainActivity.TAG, String.valueOf(positions.length()));
-                }
+
                 if(positions.length() > 0 )
                     isReply = true;
                 for (int i = 0; i < positions.length(); i++) {

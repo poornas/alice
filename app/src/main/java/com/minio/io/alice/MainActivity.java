@@ -25,9 +25,11 @@ import android.content.Context;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.SurfaceView;
+import android.view.View;
+import android.view.Window;
 import android.view.WindowManager;
+import android.widget.ImageButton;
 import android.widget.SeekBar;
-
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.CameraBridgeViewBase.CvCameraViewFrame;
 import org.opencv.android.CameraBridgeViewBase.CvCameraViewListener2;
@@ -42,12 +44,13 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 
     private MatVideoWriter matVideoWriter;
     private ZoomCameraView mOpenCvCameraView;
-
+    private ImageButton switchCameraButton;
     public static ClientWebSocket webSocket = null;
     public static Context context;
     public static String TAG = "__ALICE__";
     public static XPly serverReply;
     Mat srcMat, blackMat;
+
 
     protected static LocationTracker locationTracker = null;
     protected static SensorDataLogger sensorLogger = null;
@@ -81,9 +84,10 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 
         super.onCreate(savedInstanceState);
         context = this;
-        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-        matVideoWriter = new MatVideoWriter(context);
+        requestWindowFeature(Window.FEATURE_NO_TITLE);
+        this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
+        matVideoWriter = new MatVideoWriter(context);
         setContentView(R.layout.activity_main);
 
         if (webSocket == null) {
@@ -97,15 +101,20 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
         if (sensorLogger == null) {
             sensorLogger = new SensorDataLogger();
         }
+
         mOpenCvCameraView = (ZoomCameraView) findViewById(R.id.ZoomCameraView);
         mOpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
         mOpenCvCameraView.setZoomControl((SeekBar) findViewById(R.id.CameraZoomControls));
         mOpenCvCameraView.enableFpsMeter();
         mOpenCvCameraView.setMaxFrameSize(320, 240);
-        mOpenCvCameraView.setCameraIndex(1);
         mOpenCvCameraView.setCvCameraViewListener(this);
-
-
+        switchCameraButton = (ImageButton) findViewById(R.id.switch_camera);
+        switchCameraButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mOpenCvCameraView.swapCamera();
+            }
+        });
 
     }
 
@@ -145,13 +154,11 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
         }
         if (mOpenCvCameraView != null)
             mOpenCvCameraView.disableView();
-
     }
 
     public void onCameraViewStarted(int width, int height) {
         srcMat = new Mat();
         blackMat = new Mat();
-
     }
 
     public void onCameraViewStopped() {
@@ -171,7 +178,6 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
         }
 
         srcMat = inputFrame.rgba();
-
         if(matVideoWriter.isRecording()) {
             matVideoWriter.write(srcMat, webSocket);
         }
@@ -210,9 +216,5 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
             blackMat.setTo(new Scalar(0,0,0));
             return blackMat;
         }
-
-
-
     }
-
 }

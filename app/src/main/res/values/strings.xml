@@ -22,5 +22,6 @@
     <string name="app_name">Alice</string>
     <string name="xray_broadcast">XRayCast</string>
     <string name="COMPLETE">Complete</string>
-
+    <string name="switch_camera">Switch</string>
+    <string name="zoom">Zoom</string>
 </resources>
