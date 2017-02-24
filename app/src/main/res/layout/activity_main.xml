@@ -43,14 +43,4 @@
         android:layout_centerInParent="true"
         android:id="@+id/CameraZoomControls"/>
 
-    <ImageButton
-        android:id="@+id/switch_camera"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
-        android:padding="5dp"
-        android:scaleType="fitCenter"
-        android:contentDescription="@string/switch_camera"
-        android:src="@mipmap/switchcam"
-        />
-
 </RelativeLayout>

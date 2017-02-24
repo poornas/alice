@@ -25,11 +25,11 @@ import android.content.Context;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.SurfaceView;
-import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.ImageButton;
 import android.widget.SeekBar;
+
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.CameraBridgeViewBase.CvCameraViewFrame;
 import org.opencv.android.CameraBridgeViewBase.CvCameraViewListener2;
@@ -108,13 +108,10 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
         mOpenCvCameraView.enableFpsMeter();
         mOpenCvCameraView.setMaxFrameSize(320, 240);
         mOpenCvCameraView.setCvCameraViewListener(this);
-        switchCameraButton = (ImageButton) findViewById(R.id.switch_camera);
-        switchCameraButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                mOpenCvCameraView.swapCamera();
-            }
-        });
+
+        //fix to front camera for now. remove this to use back camera for now.
+        mOpenCvCameraView.setCameraIndex(1);
+
 
     }
 

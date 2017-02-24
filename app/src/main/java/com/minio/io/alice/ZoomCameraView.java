@@ -99,6 +99,7 @@ public class ZoomCameraView extends JavaCameraView {
         seekBar.incrementProgressBy(zoomdiff);
     }
 
+    // hook this up to a swipe event later.
     public void swapCamera() {
         mCameraId = mCameraId^1;
         disableView();
