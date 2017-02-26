@@ -35,19 +35,9 @@ import static com.minio.io.alice.MainActivity.context;
 public class LocationTracker implements LocationListener {
 
     private final Context mContext;
-    // flag for GPS status
-    boolean isGPSEnabled = false;
-
-    // flag for network status
-    boolean isNetworkEnabled = false;
-
-    // flag for GPS status
-    boolean canGetLocation = false;
 
     private Location mGPSLocation,mNetworkLocation; // location
     private Date mLastUpdateTime; //
-
-    private AliceTask vTask;
 
     // The minimum distance to change Updates in meters
     private static final long MIN_DISTANCE_CHANGE_FOR_UPDATES = 0; // 10 meters
@@ -55,9 +45,7 @@ public class LocationTracker implements LocationListener {
     // The minimum time between updates in milliseconds
     private static final long MIN_TIME_BW_UPDATES = 1000; // 1 second
 
-
-    // Declaring a Location Manager
-    protected LocationManager locationManager;
+    private LocationManager locationManager;
 
     public LocationTracker()
     {
@@ -68,20 +56,22 @@ public class LocationTracker implements LocationListener {
     protected void startLocationUpdates()
     {
         try {
+            // Declaring a Location Manager
             locationManager = (LocationManager) mContext
                     .getSystemService(LOCATION_SERVICE);
 
             // getting network status
-            isNetworkEnabled = locationManager
+            boolean isNetworkEnabled = locationManager
                     .isProviderEnabled(LocationManager.NETWORK_PROVIDER);
             // getting GPS status
-            isGPSEnabled = locationManager
+            boolean isGPSEnabled = locationManager
                     .isProviderEnabled(LocationManager.GPS_PROVIDER);
 
+            boolean canGetLocation = false;
 
             // if GPS Enabled get lat/long using GPS Services
             if (isGPSEnabled) {
-                this.canGetLocation = true;
+                canGetLocation = true;
                 if (mGPSLocation == null) {
                     locationManager.requestLocationUpdates(
                             LocationManager.GPS_PROVIDER,
@@ -94,7 +84,7 @@ public class LocationTracker implements LocationListener {
             }
             // First get location from Network Provider
             if (isNetworkEnabled) {
-                this.canGetLocation = true;
+                canGetLocation = true;
                 locationManager.requestLocationUpdates(
                         LocationManager.NETWORK_PROVIDER,
                         MIN_TIME_BW_UPDATES,
@@ -103,7 +93,7 @@ public class LocationTracker implements LocationListener {
                     Log.d(MainActivity.TAG, "Network");
 
             }
-            if (!this.canGetLocation) {
+            if (!canGetLocation) {
                 // no network provider is enabled
                 if (XDebug.LOG)
                     Log.d(MainActivity.TAG, "GPS and Network disabled");
@@ -117,11 +107,9 @@ public class LocationTracker implements LocationListener {
 
     @Override
     public void onLocationChanged(Location location) {
-        mGPSLocation = location;
         if (XDebug.LOG)
-            Log.d(MainActivity.TAG,location.toString());
-        // Uncomment when server is ready to accept location data
-        write(location.toString());
+          Log.d(MainActivity.TAG, location.toString());
+        write(new LocationRecord(location).toString());
     }
 
     protected void stopLocationUpdates() {
@@ -149,7 +137,7 @@ public class LocationTracker implements LocationListener {
     }
 
     public void write(String data){
-        vTask = new AliceTask(data);
+        AliceTask vTask = new AliceTask(data);
         vTask.execute();
 
     }

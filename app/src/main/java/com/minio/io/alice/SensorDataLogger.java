@@ -32,14 +32,12 @@ import java.util.List;
 import static com.minio.io.alice.MainActivity.context;
 
 public class SensorDataLogger implements SensorEventListener{
-    //Sensor manager instance
-    private SensorManager mSensorManager;
     private long lastUpdate;
     private static final int MIN_POLLING_DURATION = 1000; // 1 second
-    private AliceTask vTask;
 
     public SensorDataLogger() {
-        mSensorManager = (SensorManager)  context.getSystemService(Context.SENSOR_SERVICE);
+        // Sensor manager instance
+        SensorManager mSensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
         // Register all available sensors to this listener
         List<Sensor> sensors = mSensorManager.getSensorList(Sensor.TYPE_ALL);
         for (int i = 0; i < sensors.size(); i++) {
@@ -57,17 +55,16 @@ public class SensorDataLogger implements SensorEventListener{
         if ((currentTime - lastUpdate) > MIN_POLLING_DURATION) {
             lastUpdate = System.currentTimeMillis();
             SensorRecord record = new SensorRecord(event);
-            //Commented out until server can accept sensor data
             write(record.toString());
         }
     }
 
     @Override
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
-
     }
+
     public void write(String data){
-        vTask = new AliceTask(data);
+        AliceTask vTask = new AliceTask(data);
         vTask.execute();
 
     }
