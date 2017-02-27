@@ -110,7 +110,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
         mOpenCvCameraView.setCvCameraViewListener(this);
 
         //fix to front camera for now. remove this to use back camera for now.
-        mOpenCvCameraView.setCameraIndex(1);
+     //   mOpenCvCameraView.setCameraIndex(1);
 
 
     }

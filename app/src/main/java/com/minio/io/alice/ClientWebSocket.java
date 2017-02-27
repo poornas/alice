@@ -41,7 +41,12 @@ public class ClientWebSocket {
     public void connect(Context context) {
         this.context = context;
 
-        final String wsuri = "ws://192.168.1.225:8080";
+        /*  147.75.201.195 is the hosted xray server.
+            Replace with the IP address of local xray server
+            if needed.
+        */
+
+        final String wsuri = "ws://147.75.201.195:80";
 
         final WebSocketOptions webSocketOptions = new WebSocketOptions();
         webSocketOptions.setMaxMessagePayloadSize(100 * 1024 * 1024);
@@ -58,8 +63,8 @@ public class ClientWebSocket {
                 @Override
                 public void onTextMessage (String payload) {
                     broadcastIntent(payload);
-
                 }
+
 
                 @Override
                 public void onRawTextMessage(byte[] payload) {
@@ -77,7 +82,7 @@ public class ClientWebSocket {
 
                 @Override
                 public void onClose(int code, String reason) {
-                    if(XDebug.LOG)
+                     if(XDebug.LOG)
                         Log.d(MainActivity.TAG, "Connection lost.");
                 }
             }, webSocketOptions);
