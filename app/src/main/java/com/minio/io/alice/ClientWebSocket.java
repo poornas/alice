@@ -24,6 +24,9 @@ import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
 
+import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
+
 import de.tavendo.autobahn.WebSocketConnection;
 import de.tavendo.autobahn.WebSocketConnectionHandler;
 import de.tavendo.autobahn.WebSocketException;
@@ -76,9 +79,7 @@ public class ClientWebSocket {
                 }
 
                 @Override
-                public void onBinaryMessage(byte[] payload) {
-
-                }
+                public void onBinaryMessage(byte[] payload) { broadcastIntent(payload); }
 
                 @Override
                 public void onClose(int code, String reason) {
@@ -86,6 +87,7 @@ public class ClientWebSocket {
                         Log.d(MainActivity.TAG, "Connection lost.");
                 }
             }, webSocketOptions);
+
         } catch (WebSocketException e) {
 
             Log.d(MainActivity.TAG, e.toString());
@@ -113,6 +115,19 @@ public class ClientWebSocket {
     public void broadcastIntent(String payload){
         Intent intent = new Intent();
         intent.putExtra(String.valueOf(R.string.xray_broadcast), payload);
+        intent.setAction("com.minio.io.alice.xray_broadcast");
+        context.sendBroadcast(intent);
+    }
+
+    public void broadcastIntent(byte[] payload) {
+        Intent intent = new Intent();
+        String strPayload = null;
+        try {
+            strPayload = new String(payload, "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+        intent.putExtra(String.valueOf("XRayCast"), strPayload));
         intent.setAction("com.minio.io.alice.xray_broadcast");
         context.sendBroadcast(intent);
     }
