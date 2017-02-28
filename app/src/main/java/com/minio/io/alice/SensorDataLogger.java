@@ -35,7 +35,7 @@ import static com.minio.io.alice.MainActivity.context;
 
 public class SensorDataLogger implements SensorEventListener{
     private long lastUpdate;
-    private static final int MIN_POLLING_DURATION = 1000; // 1 second
+    private static final int MIN_POLLING_DURATION = 1000 * 10; // 1 second
 
     // for motion detection
     private float mAccel;
