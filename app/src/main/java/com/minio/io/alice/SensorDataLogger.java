@@ -25,6 +25,8 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.hardware.TriggerEvent;
+import android.hardware.TriggerEventListener;
 import android.util.Log;
 
 import java.util.List;
@@ -35,16 +37,36 @@ public class SensorDataLogger implements SensorEventListener{
     private long lastUpdate;
     private static final int MIN_POLLING_DURATION = 1000; // 1 second
 
+    // for motion detection
+    private float mAccel;
+    private float mAccelCurrent;
+    private float mAccelLast;
+
     public SensorDataLogger() {
+        initAccel();
         // Sensor manager instance
         SensorManager mSensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
+
         // Register all available sensors to this listener
         List<Sensor> sensors = mSensorManager.getSensorList(Sensor.TYPE_ALL);
         for (int i = 0; i < sensors.size(); i++) {
             Sensor sensor = sensors.get(i);
+
+            //request location update if significant motion detected
+            if (sensor.getType() == Sensor.TYPE_SIGNIFICANT_MOTION ||
+                    (sensor.getType() == Sensor.TYPE_STEP_DETECTOR)) {
+                TriggerEventListener mTriggerEventListener = new TriggerEventListener() {
+                    @Override
+                    public void onTrigger(TriggerEvent event) {
+                        MainActivity.locationTracker.logLastKnownLocation();
+                    }
+                };
+                mSensorManager.requestTriggerSensor(mTriggerEventListener, sensor);
+            }
+
             boolean success = mSensorManager.registerListener(this, sensor, SensorManager.SENSOR_DELAY_NORMAL);
             if (XDebug.LOG)
-                Log.d(MainActivity.TAG,(success ? "REGISTERED: ": "FAILED: ") + sensor.toString());
+                Log.d(MainActivity.TAG + "SENSOR",(success ? "REGISTERED: ": "FAILED: ") + sensor.toString());
         }
         lastUpdate = System.currentTimeMillis();
     }
@@ -54,11 +76,39 @@ public class SensorDataLogger implements SensorEventListener{
         long currentTime = System.currentTimeMillis();
         if ((currentTime - lastUpdate) > MIN_POLLING_DURATION) {
             lastUpdate = System.currentTimeMillis();
+            // use accelerometer for motion detection
+            if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
+                detectMotionChange(event);
+            }
             SensorRecord record = new SensorRecord(event);
             write(record.toString());
+
         }
     }
+    private void initAccel() {
+        mAccel = 0.0f;
+        mAccelCurrent = SensorManager.GRAVITY_EARTH;
+        mAccelLast = SensorManager.GRAVITY_EARTH;
+    }
+    private void detectMotionChange(SensorEvent event) {
+        float[] mGravity = event.values.clone();
+        //Movement detectioh
+        float sensitivityLevel = 0.5f;
 
+        float x = mGravity[0];
+        float y = mGravity[1];
+        float z = mGravity[2];
+        mAccelLast = mAccelCurrent;
+        mAccelCurrent = (float)Math.sqrt(x*x + y*y + z*z);
+        float delta = mAccelCurrent - mAccelLast;
+        mAccel = mAccel * 0.9f + delta;
+
+        //If mobile move any direction then the following condition will become true
+        if(mAccel > sensitivityLevel) {
+            MainActivity.locationTracker.logLastKnownLocation();
+        }
+
+    }
     @Override
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
     }
