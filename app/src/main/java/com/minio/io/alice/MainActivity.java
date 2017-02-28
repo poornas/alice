@@ -24,6 +24,8 @@ import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.GestureDetector;
+import android.view.MotionEvent;
 import android.view.SurfaceView;
 import android.view.Window;
 import android.view.WindowManager;
@@ -51,6 +53,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
     public static XPly serverReply;
     Mat srcMat, blackMat;
 
+    GestureDetector gestureDetector;
 
     protected static LocationTracker locationTracker = null;
     protected static SensorDataLogger sensorLogger = null;
@@ -60,7 +63,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
         public void onManagerConnected(int status) {
             switch (status) {
                 case LoaderCallbackInterface.SUCCESS: {
-                    if(XDebug.LOG)
+                    if (XDebug.LOG)
                         Log.i(MainActivity.TAG, "OpenCV loaded successfully");
                     mOpenCvCameraView.enableView();
                 }
@@ -74,10 +77,16 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
     };
 
     public MainActivity() {
-        if(XDebug.LOG)
+        gestureDetector = new GestureDetector(context, new GestureListener());
+        if (XDebug.LOG)
             Log.i(MainActivity.TAG, "Instantiated new " + this.getClass());
     }
 
+    @Override
+    public boolean onTouchEvent(MotionEvent e) {
+
+        return gestureDetector.onTouchEvent(e);
+    }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -85,7 +94,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
         super.onCreate(savedInstanceState);
         context = this;
         requestWindowFeature(Window.FEATURE_NO_TITLE);
-        this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
         matVideoWriter = new MatVideoWriter(context);
         setContentView(R.layout.activity_main);
@@ -110,7 +119,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
         mOpenCvCameraView.setCvCameraViewListener(this);
 
         //fix to front camera for now. remove this to use back camera for now.
-     //   mOpenCvCameraView.setCameraIndex(1);
+        mOpenCvCameraView.setCameraIndex(1);
 
 
     }
@@ -133,11 +142,11 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
             webSocket.connect(context);
         }
         if (!OpenCVLoader.initDebug()) {
-            if(XDebug.LOG)
+            if (XDebug.LOG)
                 Log.d(MainActivity.TAG, "Internal OpenCV library not found. Using OpenCV Manager for initialization");
             OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_3_0_0, this, mLoaderCallback);
         } else {
-            if(XDebug.LOG)
+            if (XDebug.LOG)
                 Log.d(MainActivity.TAG, "OpenCV library found inside package. Using it!");
             mLoaderCallback.onManagerConnected(LoaderCallbackInterface.SUCCESS);
         }
@@ -175,14 +184,14 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
         }
 
         srcMat = inputFrame.rgba();
-        if(matVideoWriter.isRecording()) {
+        if (matVideoWriter.isRecording()) {
             matVideoWriter.write(srcMat, webSocket);
         }
-        if(serverReply != null) {
+        if (serverReply != null) {
 
-            if(serverReply.isReply() == true) {
+            if (serverReply.isReply() == true) {
                 if (XDebug.LOG) {
-                    Log.i(MainActivity.TAG, " Alice found someone");
+                    // Log.i(MainActivity.TAG, " Alice found someone");
                 }
                 Imgproc.rectangle(srcMat, serverReply.getP1(), serverReply.getP2(), serverReply.getScalar(), serverReply.getThickness());
                 if (serverReply.getZoom() != 0)
@@ -193,25 +202,45 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
             if (serverReply.getDisplay()) {
                 // Wake up if the display is set to true
                 if (XDebug.LOG) {
-                    Log.i(MainActivity.TAG, " Alice Wakes up");
-                    Log.i(MainActivity.TAG, String.valueOf(serverReply.isReply()));
+                    //Log.i(MainActivity.TAG, " Alice Wakes up");
+                    // Log.i(MainActivity.TAG, String.valueOf(serverReply.isReply()));
                 }
                 return srcMat;
             } else {
                 if (XDebug.LOG) {
-                    Log.i(MainActivity.TAG, "Alice Sleeps");
+                    //  Log.i(MainActivity.TAG, "Alice Sleeps");
                 }
                 // return a black mat when server replies with false for Display.
                 blackMat = srcMat.clone();
                 blackMat.setTo(new Scalar(0, 0, 0));
                 return blackMat;
             }
-        }
-        else {
+        } else {
             // return black frame unless woken up explicitly by server.
             blackMat = srcMat.clone();
-            blackMat.setTo(new Scalar(0,0,0));
+            blackMat.setTo(new Scalar(0, 0, 0));
             return blackMat;
         }
     }
+
+
+    private class GestureListener extends GestureDetector.SimpleOnGestureListener {
+
+        @Override
+        public boolean onDown(MotionEvent e) {
+            return true;
+        }
+
+        // event when double tap occurs
+        @Override
+        public boolean onDoubleTap(MotionEvent e) {
+            float x = e.getX();
+            float y = e.getY();
+            if (XDebug.LOG)
+                Log.d(MainActivity.TAG, "Tapped at: (" + x + "," + y + ")");
+            mOpenCvCameraView.swapCamera();
+            return true;
+        }
+    }
+
 }

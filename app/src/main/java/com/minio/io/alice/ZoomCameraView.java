@@ -23,6 +23,7 @@ package com.minio.io.alice;
 import android.content.Context;
 import android.hardware.Camera;
 import android.util.AttributeSet;
+import android.view.GestureDetector;
 import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
 
@@ -31,13 +32,20 @@ import org.opencv.android.JavaCameraView;
 // All things Camera goes here.
 
 public class ZoomCameraView extends JavaCameraView {
+
+    GestureDetector gestureDetector;
+
     private int mCameraId = 0;
     public ZoomCameraView(Context context, int cameraId) {
         super(context, cameraId);
+
     }
 
     public ZoomCameraView(Context context, AttributeSet attrs) {
+
         super(context, attrs);
+
+
     }
 
     protected SeekBar seekBar;
@@ -99,11 +107,12 @@ public class ZoomCameraView extends JavaCameraView {
         seekBar.incrementProgressBy(zoomdiff);
     }
 
-    // hook this up to a swipe event later.
     public void swapCamera() {
         mCameraId = mCameraId^1;
         disableView();
         setCameraIndex(mCameraId);
         enableView();
     }
+
+
 }
