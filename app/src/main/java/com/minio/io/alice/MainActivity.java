@@ -118,7 +118,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
         mOpenCvCameraView.setMaxFrameSize(640, 480);
         mOpenCvCameraView.setCvCameraViewListener(this);
 
-        //fix to front camera for now. remove this to use back camera for now.
+        // fix to front camera for now. remove this to use back camera for now.
         mOpenCvCameraView.setCameraIndex(1);
     }
 

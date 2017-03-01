@@ -189,3 +189,6 @@ openCVLibrary310/build/intermediates/rs/
 openCVLibrary310/build/intermediates/shaders/
 openCVLibrary310/build/intermediates/transforms/
 openCVLibrary310/build/tmp/
+local.properties
+app/app.iml
+openCVLibrary310/openCVLibrary310.iml
