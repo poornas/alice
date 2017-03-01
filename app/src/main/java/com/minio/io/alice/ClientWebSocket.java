@@ -127,7 +127,7 @@ public class ClientWebSocket {
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         }
-        intent.putExtra(String.valueOf("XRayCast"), strPayload));
+        intent.putExtra(String.valueOf("XRayCast"), strPayload);
         intent.setAction("com.minio.io.alice.xray_broadcast");
         context.sendBroadcast(intent);
     }
