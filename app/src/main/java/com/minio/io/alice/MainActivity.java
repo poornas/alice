@@ -115,7 +115,6 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
         mOpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
         mOpenCvCameraView.setZoomControl((SeekBar) findViewById(R.id.CameraZoomControls));
         mOpenCvCameraView.enableFpsMeter();
-        mOpenCvCameraView.setMaxFrameSize(640, 480);
         mOpenCvCameraView.setCvCameraViewListener(this);
 
         // fix to front camera for now. remove this to use back camera for now.
