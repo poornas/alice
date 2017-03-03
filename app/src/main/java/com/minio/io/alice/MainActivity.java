@@ -242,7 +242,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 
         @Override
         public boolean onDown(MotionEvent e) {
-            return true;
+            return false;
         }
 
         // event when double tap occurs
@@ -254,6 +254,16 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
                 Log.d(MainActivity.TAG, "Tapped at: (" + x + "," + y + ")");
             swapCamera();
             return true;
+        }
+
+        @Override
+        public void onLongPress(MotionEvent event) {
+            // triggers after onDown only for long press
+            if(XDebug.LOG)
+                Log.i(MainActivity.TAG, "Long Press");
+            mOpenCvCameraView.resetZoom();
+            super.onLongPress(event);
+
         }
     }
 

@@ -24,6 +24,7 @@ import android.content.Context;
 import android.hardware.Camera;
 import android.util.AttributeSet;
 import android.view.GestureDetector;
+import android.view.View;
 import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
 
@@ -90,19 +91,21 @@ public class ZoomCameraView extends JavaCameraView {
     protected boolean initializeCamera(int width, int height) {
 
         boolean ret = super.initializeCamera(width, height);
-
-
         Camera.Parameters params = mCamera.getParameters();
 
         if (params.isZoomSupported())
             enableZoomControls(params);
-
         mCamera.setParameters(params);
-
+        seekBar.setVisibility(View.GONE);
         return ret;
     }
+
     public void increaseZoom(int zoomdiff) {
         seekBar.incrementProgressBy(zoomdiff);
+    }
+
+    public void resetZoom() {
+        seekBar.setMax(0);
     }
 
 }
