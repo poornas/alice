@@ -25,7 +25,6 @@ import android.content.Intent;
 import android.util.Log;
 
 import java.io.UnsupportedEncodingException;
-import java.nio.charset.StandardCharsets;
 
 import de.tavendo.autobahn.WebSocketConnection;
 import de.tavendo.autobahn.WebSocketConnectionHandler;
@@ -43,7 +42,7 @@ public class ClientWebSocket {
 
     public void connect(Context context) {
         this.context = context;
-
+        
         /*  147.75.201.195 is the hosted xray server.
             Replace with the IP address of local xray server
             if needed.

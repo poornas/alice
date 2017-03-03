@@ -24,8 +24,10 @@ import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Display;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
+import android.view.Surface;
 import android.view.SurfaceView;
 import android.view.Window;
 import android.view.WindowManager;
@@ -40,6 +42,8 @@ import org.opencv.android.OpenCVLoader;
 import org.opencv.core.Mat;
 import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
+
+import static org.opencv.core.Core.flip;
 
 
 public class MainActivity extends Activity implements CvCameraViewListener2 {
@@ -57,6 +61,10 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 
     protected static LocationTracker locationTracker = null;
     protected static SensorDataLogger sensorLogger = null;
+
+    // Front camera orientation is default
+    private int mCameraId = 1;
+    private Display display;
 
     private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
         @Override
@@ -93,6 +101,8 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 
         super.onCreate(savedInstanceState);
         context = this;
+        display = ((WindowManager) this.getSystemService(WINDOW_SERVICE)).getDefaultDisplay();
+
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
@@ -117,8 +127,8 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
         mOpenCvCameraView.enableFpsMeter();
         mOpenCvCameraView.setCvCameraViewListener(this);
 
-        // fix to front camera for now. remove this to use back camera for now.
-        mOpenCvCameraView.setCameraIndex(1);
+        // Set front camera as default
+        mOpenCvCameraView.setCameraIndex(mCameraId);
     }
 
 
@@ -180,7 +190,14 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
             srcMat.release();
         }
 
-        srcMat = inputFrame.rgba();
+        // Flip image frame only for front camera to fix orientation
+        if ((mCameraId == 1) && (display.getRotation() == Surface.ROTATION_90)) {
+            int flipFlags = +1;
+            flip(inputFrame.rgba(), srcMat, flipFlags);
+        } else {
+            srcMat = inputFrame.rgba();
+        }
+
         if (matVideoWriter.isRecording()) {
             matVideoWriter.write(srcMat, webSocket);
         }
@@ -235,9 +252,16 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
             float y = e.getY();
             if (XDebug.LOG)
                 Log.d(MainActivity.TAG, "Tapped at: (" + x + "," + y + ")");
-            mOpenCvCameraView.swapCamera();
+            swapCamera();
             return true;
         }
     }
 
+    // Upon double tap, swap front  and back cameras
+    public void swapCamera() {
+        mCameraId = mCameraId^1;
+        mOpenCvCameraView.disableView();
+        mOpenCvCameraView.setCameraIndex(mCameraId);
+        mOpenCvCameraView.enableView();
+    }
 }
