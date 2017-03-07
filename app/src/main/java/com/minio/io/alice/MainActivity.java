@@ -34,6 +34,9 @@ import android.view.WindowManager;
 import android.widget.ImageButton;
 import android.widget.SeekBar;
 
+import net.hockeyapp.android.CrashManager;
+import net.hockeyapp.android.UpdateManager;
+
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.CameraBridgeViewBase.CvCameraViewFrame;
 import org.opencv.android.CameraBridgeViewBase.CvCameraViewListener2;
@@ -44,7 +47,6 @@ import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
 
 import static org.opencv.core.Core.flip;
-
 
 public class MainActivity extends Activity implements CvCameraViewListener2 {
 
@@ -129,6 +131,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 
         // Set front camera as default
         mOpenCvCameraView.setCameraIndex(mCameraId);
+        checkForUpdates();
     }
 
 
@@ -137,6 +140,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
         super.onPause();
         if (mOpenCvCameraView != null)
             mOpenCvCameraView.disableView();
+        unregisterManagers();
     }
 
     @Override
@@ -157,6 +161,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
                 Log.d(MainActivity.TAG, "OpenCV library found inside package. Using it!");
             mLoaderCallback.onManagerConnected(LoaderCallbackInterface.SUCCESS);
         }
+        checkForCrashes();
 
     }
 
@@ -167,6 +172,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
         }
         if (mOpenCvCameraView != null)
             mOpenCvCameraView.disableView();
+        unregisterManagers();
     }
 
     public void onCameraViewStarted(int width, int height) {
@@ -237,6 +243,18 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
         }
     }
 
+    private void checkForCrashes() {
+        CrashManager.register(this);
+    }
+
+    private void checkForUpdates() {
+        // Remove this for store builds!
+        UpdateManager.register(this);
+    }
+
+    private void unregisterManagers() {
+        UpdateManager.unregister();
+    }
 
     private class GestureListener extends GestureDetector.SimpleOnGestureListener {
 

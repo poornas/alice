@@ -30,6 +30,7 @@ android {
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        manifestPlaceholders = [HOCKEYAPP_APP_ID: "d9d896d94c214662bcc8f7c41d019a0b"]
     }
     buildTypes {
         release {
@@ -46,6 +47,7 @@ android {
 
 dependencies {
     compile 'com.github.crossbario:autobahn-android:v0.5.2'
+    compile 'net.hockeyapp.android:HockeySDK:4.1.2'
     androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
