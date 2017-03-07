@@ -42,7 +42,7 @@ public class ClientWebSocket {
 
     public void connect(Context context) {
         this.context = context;
-        
+
         /*  147.75.201.195 is the hosted xray server.
             Replace with the IP address of local xray server
             if needed.
@@ -112,6 +112,9 @@ public class ClientWebSocket {
     }
 
     public void broadcastIntent(String payload){
+        if (payload == null) {
+            return;
+        }
         Intent intent = new Intent();
         intent.putExtra(String.valueOf(R.string.xray_broadcast), payload);
         intent.setAction("com.minio.io.alice.xray_broadcast");
@@ -119,8 +122,11 @@ public class ClientWebSocket {
     }
 
     public void broadcastIntent(byte[] payload) {
-        Intent intent = new Intent();
+        if (payload == null) {
+            return;
+        }
         String strPayload = null;
+        Intent intent = new Intent();
         try {
             strPayload = new String(payload, "UTF-8");
         } catch (UnsupportedEncodingException e) {
