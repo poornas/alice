@@ -63,6 +63,10 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 
     protected static LocationTracker locationTracker = null;
     protected static SensorDataLogger sensorLogger = null;
+    protected static AudioWriter audioWriter = null;
+
+    //turn this switch on when server can actually handle audio data
+    private boolean audioFlag  = false;
 
     // Front camera orientation is default
     private int mCameraId = 1;
@@ -123,6 +127,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
             sensorLogger = new SensorDataLogger();
         }
 
+        audioWriter = new AudioWriter(context,audioFlag);
         mOpenCvCameraView = (ZoomCameraView) findViewById(R.id.ZoomCameraView);
         mOpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
         mOpenCvCameraView.setZoomControl((SeekBar) findViewById(R.id.CameraZoomControls));
@@ -140,6 +145,8 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
         super.onPause();
         if (mOpenCvCameraView != null)
             mOpenCvCameraView.disableView();
+        if (audioWriter != null)
+            audioWriter.stopRecording();
         unregisterManagers();
     }
 
@@ -152,6 +159,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
             webSocket = new ClientWebSocket();
             webSocket.connect(context);
         }
+        audioWriter.startRecording();
         if (!OpenCVLoader.initDebug()) {
             if (XDebug.LOG)
                 Log.d(MainActivity.TAG, "Internal OpenCV library not found. Using OpenCV Manager for initialization");
@@ -170,8 +178,12 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
         if (matVideoWriter != null) {
             matVideoWriter.stopRecording();
         }
+        if (audioWriter != null)
+            audioWriter.stopRecording();
+
         if (mOpenCvCameraView != null)
             mOpenCvCameraView.disableView();
+
         unregisterManagers();
     }
 
@@ -188,6 +200,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
             blackMat.release();
         }
         matVideoWriter.stopRecording();
+        audioWriter.stopRecording();
     }
 
     public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
