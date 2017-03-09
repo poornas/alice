@@ -20,19 +20,30 @@
 
 package com.minio.io.alice;
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.Settings;
+import android.support.annotation.NonNull;
+import android.support.design.widget.Snackbar;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.Display;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.Surface;
 import android.view.SurfaceView;
+import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.ImageButton;
 import android.widget.SeekBar;
+import android.widget.Toast;
 
 import net.hockeyapp.android.CrashManager;
 import net.hockeyapp.android.UpdateManager;
@@ -46,6 +57,9 @@ import org.opencv.core.Mat;
 import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+
 import static org.opencv.core.Core.flip;
 
 public class MainActivity extends Activity implements CvCameraViewListener2 {
@@ -58,6 +72,16 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
     public static String TAG = "__ALICE__";
     public static XPly serverReply;
     Mat srcMat, blackMat;
+
+    private static final int REQUEST_VIDEO_PERMISSIONS = 1;
+    private boolean hasVideoPermission = false;
+    private boolean hasLocationPermission = false;
+
+    private static final String[] VIDEO_PERMISSIONS = {
+            Manifest.permission.CAMERA,
+            Manifest.permission.RECORD_AUDIO,
+            Manifest.permission.ACCESS_FINE_LOCATION,
+    };
 
     GestureDetector gestureDetector;
 
@@ -120,9 +144,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
             Log.i(MainActivity.TAG, "About to connect to WS");
             webSocket.connect(context);
         }
-        if (locationTracker == null) {
-            locationTracker = new LocationTracker();
-        }
+
         if (sensorLogger == null) {
             sensorLogger = new SensorDataLogger();
         }
@@ -133,10 +155,10 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
         mOpenCvCameraView.setZoomControl((SeekBar) findViewById(R.id.CameraZoomControls));
         mOpenCvCameraView.enableFpsMeter();
         mOpenCvCameraView.setCvCameraViewListener(this);
-
         // Set front camera as default
         mOpenCvCameraView.setCameraIndex(mCameraId);
         checkForUpdates();
+
     }
 
 
@@ -159,15 +181,23 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
             webSocket = new ClientWebSocket();
             webSocket.connect(context);
         }
-        audioWriter.startRecording();
-        if (!OpenCVLoader.initDebug()) {
-            if (XDebug.LOG)
-                Log.d(MainActivity.TAG, "Internal OpenCV library not found. Using OpenCV Manager for initialization");
-            OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_3_0_0, this, mLoaderCallback);
-        } else {
-            if (XDebug.LOG)
-                Log.d(MainActivity.TAG, "OpenCV library found inside package. Using it!");
-            mLoaderCallback.onManagerConnected(LoaderCallbackInterface.SUCCESS);
+
+        requestVideoPermission();
+
+        if (hasLocationPermission && locationTracker == null)
+            locationTracker = new LocationTracker();
+
+        if (hasVideoPermission) {
+            if (!OpenCVLoader.initDebug()) {
+                if (XDebug.LOG)
+                    Log.d(MainActivity.TAG, "Internal OpenCV library not found. Using OpenCV Manager for initialization");
+                OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_3_0_0, this, mLoaderCallback);
+            } else {
+                if (XDebug.LOG)
+                    Log.d(MainActivity.TAG, "OpenCV library found inside package. Using it!");
+                mLoaderCallback.onManagerConnected(LoaderCallbackInterface.SUCCESS);
+            }
+            audioWriter.startRecording();
         }
         checkForCrashes();
 
@@ -304,5 +334,122 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
         mOpenCvCameraView.disableView();
         mOpenCvCameraView.setCameraIndex(mCameraId);
         mOpenCvCameraView.enableView();
+    }
+
+    /**
+     * Gets whether you should show UI with rationale for requesting permissions.
+     *
+     * @param permissions The permissions your app wants to request.
+     * @return Whether you can show permission rationale UI.
+     */
+    private boolean shouldShowRequestPermissionRationale(String[] permissions) {
+        boolean show =  false;
+        for (String permission : permissions) {
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this, permission)) {
+                show =  true;
+            }
+        }
+        return show;
+    }
+
+    private boolean checkSelfPermission(String[] permissions) {
+        for (String permission : permissions) {
+            if (ContextCompat.checkSelfPermission(this, permission)
+                    != PackageManager.PERMISSION_GRANTED)
+                return true;
+        }
+        return false;
+    }
+
+    private void requestVideoPermission() {
+
+        if (checkSelfPermission(VIDEO_PERMISSIONS)) {
+            if (shouldShowRequestPermissionRationale(VIDEO_PERMISSIONS)) {
+                // Show an explanation to the user *asynchronously* -- don't block
+                // this thread waiting for the user's response! After the user
+                // sees the explanation, try again to request the permission.
+                showDialog(VIDEO_PERMISSIONS);
+            } else {
+                // No explanation needed, we can request the permission.
+                ActivityCompat.requestPermissions(this,
+                        VIDEO_PERMISSIONS,
+                        REQUEST_VIDEO_PERMISSIONS);
+
+                // REQUEST_VIDEO_PERMISSIONS is an
+                // app-defined int constant. The callback method gets the
+                // result of the request.
+            }
+
+        } else {
+            this.hasVideoPermission = true;
+        }
+
+    }
+    // Find permissions that were not granted and return as an ArrayList
+    private ArrayList<String> getPendingPermissions(int[] grantResults, String permissions[]) {
+        HashMap<String,Integer> perms = new HashMap();
+        ArrayList<String> pendingPermissions = new ArrayList<String>();
+        for (int i = 0; i < permissions.length; i++) {
+            perms.put(permissions[i],grantResults[i]);
+            if (permissions[i] == Manifest.permission.ACCESS_FINE_LOCATION && grantResults[i] == PackageManager.PERMISSION_GRANTED)
+                this.hasLocationPermission = true;
+            if (permissions[i] == Manifest.permission.CAMERA  && grantResults[i] == PackageManager.PERMISSION_GRANTED)
+                this.hasVideoPermission = true;
+        }
+
+        for (int i = 0; i < VIDEO_PERMISSIONS.length; i++) {
+            if (grantResults.length == VIDEO_PERMISSIONS.length) {
+                if (perms.get(VIDEO_PERMISSIONS[i]) != PackageManager.PERMISSION_GRANTED) {
+                    pendingPermissions.add(VIDEO_PERMISSIONS[i]);
+                }
+            } else {
+                pendingPermissions.add(VIDEO_PERMISSIONS[i]);
+            }
+        }
+        return pendingPermissions;
+    }
+
+    // Callback with the request from calling requestPermissions(...)
+    @Override
+    public void onRequestPermissionsResult(int requestCode,
+                                           @NonNull String permissions[],
+                                           @NonNull int[] grantResults) {
+        // Make sure it's our original REQUEST_VIDEO_PERMISSIONS request
+
+        if (requestCode == REQUEST_VIDEO_PERMISSIONS) {
+           ArrayList<String> permissionsNeededYet = getPendingPermissions(grantResults,permissions);
+            if (permissionsNeededYet.size() == 0){
+                //all permissions granted - allow camera access
+                return;
+
+            } else {
+                // showRationale = false if user clicks Never Ask Again, otherwise true
+                boolean showRationale = shouldShowRequestPermissionRationale(permissionsNeededYet.toArray(new String[0]));
+
+                if (!showRationale) {
+                    Toast.makeText(this, "Video permission denied.Enable camera and location preferences on the App settings", Toast.LENGTH_SHORT).show();
+                    startActivity(new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:" + BuildConfig.APPLICATION_ID)));
+                    finish();
+                }
+            }
+        } else {
+            super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        }
+    }
+    // show dialog to request for permissions
+    void showDialog(final String permissions[]) {
+        final Activity thisActivity = this;
+        View.OnClickListener listener = new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                ActivityCompat.requestPermissions(thisActivity, permissions, REQUEST_VIDEO_PERMISSIONS);
+            }
+
+        };
+
+        Snackbar.make(mOpenCvCameraView, R.string.permission_camera_rationale,
+                Snackbar.LENGTH_INDEFINITE)
+                .setAction(R.string.ok, listener)
+                .show();
     }
 }
