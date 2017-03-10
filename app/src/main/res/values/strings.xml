@@ -25,6 +25,6 @@
     <string name="switch_camera">Switch</string>
     <string name="zoom">Zoom</string>
     <string name="ok">OK</string>
-    <string name="permission_camera_rationale">Access to camera,microphone and location is needed for face ßdetection</string>
+    <string name="permission_camera_rationale">Access to camera,microphone and location is needed for face detection</string>
     <string name="no_video_permission">This application cannot run because it does not have camera,audio and location permissions.  The application will now exit.</string>
 </resources>
