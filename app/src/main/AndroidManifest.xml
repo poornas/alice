@@ -62,6 +62,11 @@
                 </action>
             </intent-filter>
         </receiver>
+
+
+        <service android:name="com.minio.io.alice.StoreService">
+        </service>
+
         //your activity declarations and other stuff
         <meta-data android:name="net.hockeyapp.android.appIdentifier" android:value="${HOCKEYAPP_APP_ID}" />
     </application>

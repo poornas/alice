@@ -22,11 +22,14 @@ package com.minio.io.alice;
 
 import android.Manifest;
 import android.app.Activity;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
@@ -76,6 +79,9 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
     private static final int REQUEST_VIDEO_PERMISSIONS = 1;
     private boolean hasVideoPermission = false;
     private boolean hasLocationPermission = false;
+
+    StoreService storeFramesService;
+    boolean mServiceBound = false;
 
     private static final String[] VIDEO_PERMISSIONS = {
             Manifest.permission.CAMERA,
@@ -157,8 +163,9 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
         mOpenCvCameraView.setCvCameraViewListener(this);
         // Set front camera as default
         mOpenCvCameraView.setCameraIndex(mCameraId);
+        Intent intent = new Intent(MainActivity.this, StoreService.class);
+        bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE);
         checkForUpdates();
-
     }
 
 
@@ -176,14 +183,11 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
     public void onResume() {
 
         super.onResume();
-
         if (webSocket == null) {
             webSocket = new ClientWebSocket();
             webSocket.connect(context);
         }
-
         requestVideoPermission();
-
         if (hasLocationPermission && locationTracker == null)
             locationTracker = new LocationTracker();
 
@@ -200,7 +204,6 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
             audioWriter.startRecording();
         }
         checkForCrashes();
-
     }
 
     public void onDestroy() {
@@ -215,6 +218,10 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
             mOpenCvCameraView.disableView();
 
         unregisterManagers();
+        if (mServiceBound) {
+            context.unbindService(mServiceConnection);
+            mServiceBound = false;
+        }
     }
 
     public void onCameraViewStarted(int width, int height) {
@@ -231,14 +238,16 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
         }
         matVideoWriter.stopRecording();
         audioWriter.stopRecording();
+        if (mServiceBound) {
+            context.unbindService(mServiceConnection);
+            mServiceBound = false;
+        }
     }
 
     public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
-
         if (srcMat != null) {
             srcMat.release();
         }
-
         // Flip image frame only for front camera to fix orientation
         if ((mCameraId == 1) && (display.getRotation() == Surface.ROTATION_90)) {
             int flipFlags = +1;
@@ -251,28 +260,26 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
             matVideoWriter.write(srcMat, webSocket);
         }
         if (serverReply != null) {
-
             if (serverReply.isReply() == true) {
-                if (XDebug.LOG) {
-                    // Log.i(MainActivity.TAG, " Alice found someone");
-                }
+
                 Imgproc.rectangle(srcMat, serverReply.getP1(), serverReply.getP2(), serverReply.getScalar(), serverReply.getThickness());
+
                 if (serverReply.getZoom() != 0)
                     mOpenCvCameraView.increaseZoom(serverReply.getZoom());
+
+                if (XDebug.LOG) {
+                    // TODO: This should be done only on server's command. Uncomment later.
+                    if(mServiceBound) {
+                      //  storeFramesService.save(matVideoWriter.captureBitmap(srcMat));
+                    }
+                }
                 return srcMat;
             }
 
             if (serverReply.getDisplay()) {
                 // Wake up if the display is set to true
-                if (XDebug.LOG) {
-                    //Log.i(MainActivity.TAG, " Alice Wakes up");
-                    // Log.i(MainActivity.TAG, String.valueOf(serverReply.isReply()));
-                }
                 return srcMat;
             } else {
-                if (XDebug.LOG) {
-                    //  Log.i(MainActivity.TAG, "Alice Sleeps");
-                }
                 // return a black mat when server replies with false for Display.
                 blackMat = srcMat.clone();
                 blackMat.setTo(new Scalar(0, 0, 0));
@@ -285,11 +292,12 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
             return blackMat;
         }
     }
-
+    // Use Hockey Framework to collect crash reports on clients.
     private void checkForCrashes() {
         CrashManager.register(this);
     }
 
+    // Hockey App Distribution
     private void checkForUpdates() {
         // Remove this for store builds!
         UpdateManager.register(this);
@@ -299,6 +307,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
         UpdateManager.unregister();
     }
 
+    // Private class to handle touch events on camera.
     private class GestureListener extends GestureDetector.SimpleOnGestureListener {
 
         @Override
@@ -444,7 +453,6 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
             public void onClick(View view) {
                 ActivityCompat.requestPermissions(thisActivity, permissions, REQUEST_VIDEO_PERMISSIONS);
             }
-
         };
 
         Snackbar.make(mOpenCvCameraView, R.string.permission_camera_rationale,
@@ -452,4 +460,19 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
                 .setAction(R.string.ok, listener)
                 .show();
     }
+
+    // Setup to be able to call frame saving to object storage.
+    private ServiceConnection mServiceConnection = new ServiceConnection() {
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            mServiceBound = false;
+        }
+
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            StoreService.AliceServiceBinder myBinder = (StoreService.AliceServiceBinder) service;
+            storeFramesService = myBinder.getService();
+            mServiceBound = true;
+        }
+    };
 }

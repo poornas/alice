@@ -39,9 +39,10 @@ public class IncomingReceiver extends BroadcastReceiver {
     public void onReceive(Context context, Intent intent) {
 
         String msg = intent.getStringExtra(String.valueOf(R.string.xray_broadcast));
-        if(XDebug.LOG)
-            Log.i(MainActivity.TAG, msg);
-        MainActivity.serverReply = new XPly(msg);
-
+        if (msg != null) {
+            if(XDebug.LOG)
+                Log.i(MainActivity.TAG, msg);
+            MainActivity.serverReply = new XPly(msg);
+        }
     }
 }

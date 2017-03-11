@@ -44,6 +44,7 @@ public class MatVideoWriter {
         public  MatVideoWriter(Context context) {
             this.context = context;
             recording = true;
+
         }
 
         public void write(Mat mat, ClientWebSocket webSocket){
@@ -52,7 +53,7 @@ public class MatVideoWriter {
         }
 
         // Formats Mat Object to BitMap Byte Array.
-        private byte[] captureBitmap(Mat mat) {
+        public byte[] captureBitmap(Mat mat) {
             Bitmap bitmap;
             try {
                 bitmap = Bitmap.createBitmap(mat.cols(), mat.rows(), Bitmap.Config.ARGB_8888);
@@ -63,11 +64,12 @@ public class MatVideoWriter {
 
                 // Convert ByteArrayOutputStream to byte array. Close stream.
                 matByteArray = byteStream.toByteArray();
+
                 byteStream.close();
                 return matByteArray;
 
-            } catch (Exception ex) {
-                System.out.println(ex.getMessage());
+            } catch (Exception e) {
+                System.out.println(e.getMessage());
             }
             return null;
         }
@@ -90,6 +92,5 @@ public class MatVideoWriter {
             vTask = null;
             matByteArray = null;
         }
-
 
 }

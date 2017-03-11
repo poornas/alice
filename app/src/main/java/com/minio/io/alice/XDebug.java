@@ -24,8 +24,6 @@ package com.minio.io.alice;
 // On off switch for enabling log messages. Filter out in android studio with "__ALICE__"
 
 public class XDebug {
-
+    // set this to true during development only.
     public  static  final boolean LOG = false;
-
-
 }
