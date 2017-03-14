@@ -58,7 +58,8 @@ public class SensorDataLogger implements SensorEventListener{
                 TriggerEventListener mTriggerEventListener = new TriggerEventListener() {
                     @Override
                     public void onTrigger(TriggerEvent event) {
-                        MainActivity.locationTracker.logLastKnownLocation();
+                        if (MainActivity.locationTracker != null)
+                            MainActivity.locationTracker.logLastKnownLocation();
                     }
                 };
                 mSensorManager.requestTriggerSensor(mTriggerEventListener, sensor);
@@ -105,7 +106,9 @@ public class SensorDataLogger implements SensorEventListener{
 
         //If mobile move any direction then the following condition will become true
         if(mAccel > sensitivityLevel) {
-            MainActivity.locationTracker.logLastKnownLocation();
+            if (MainActivity.locationTracker != null)
+                MainActivity.locationTracker.logLastKnownLocation();
+
         }
 
     }

@@ -26,6 +26,7 @@ android {
     defaultConfig {
         applicationId "com.minio.io.alice"
         minSdkVersion 21
+
         targetSdkVersion 25
         versionCode 1
         versionName "1.0"
@@ -58,6 +59,8 @@ dependencies {
     })
     compile 'com.android.support:appcompat-v7:25.1.0'
     compile 'com.android.support:design:25.1.1'
+    compile 'com.google.android.gms:play-services-vision:9.4.0+'
+
     testCompile 'junit:junit:4.12'
     compile project(':openCVLibrary310')
 }

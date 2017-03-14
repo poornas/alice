@@ -36,40 +36,27 @@ import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
-import android.view.Display;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
-import android.view.Surface;
-import android.view.SurfaceView;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
-import android.widget.ImageButton;
 import android.widget.SeekBar;
 import android.widget.Toast;
+
+import com.google.android.gms.vision.MultiProcessor;
+import com.google.android.gms.vision.Tracker;
+import com.google.android.gms.vision.face.Face;
 
 import net.hockeyapp.android.CrashManager;
 import net.hockeyapp.android.UpdateManager;
 
-import org.opencv.android.BaseLoaderCallback;
-import org.opencv.android.CameraBridgeViewBase.CvCameraViewFrame;
-import org.opencv.android.CameraBridgeViewBase.CvCameraViewListener2;
-import org.opencv.android.LoaderCallbackInterface;
-import org.opencv.android.OpenCVLoader;
-import org.opencv.core.Mat;
-import org.opencv.core.Scalar;
-import org.opencv.imgproc.Imgproc;
-
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import static org.opencv.core.Core.flip;
+public class MainActivity extends Activity  implements PreviewCallback {
 
-public class MainActivity extends Activity implements CvCameraViewListener2 {
-
-    private MatVideoWriter matVideoWriter;
-    private ZoomCameraView mOpenCvCameraView;
-    private ImageButton switchCameraButton;
     public static ClientWebSocket webSocket = null;
     public static Context context;
     public static String TAG = "__ALICE__";
@@ -82,6 +69,8 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 
     StoreService storeFramesService;
     boolean mServiceBound = false;
+    boolean running = true;
+    public static LocationTracker locationTracker;
 
     private static final String[] VIDEO_PERMISSIONS = {
             Manifest.permission.CAMERA,
@@ -91,35 +80,16 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 
     GestureDetector gestureDetector;
 
-    protected static LocationTracker locationTracker = null;
-    protected static SensorDataLogger sensorLogger = null;
-    protected static AudioWriter audioWriter = null;
+    private CameraSourcePreview mPreview;
+    private GraphicOverlay mGraphicOverlay;
 
-    //turn this switch on when server can actually handle audio data
-    private boolean audioFlag  = false;
+    private CameraDeviceManager cameraManager;
 
-    // Front camera orientation is default
-    private int mCameraId = 1;
-    private Display display;
-
-    private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
-        @Override
-        public void onManagerConnected(int status) {
-            switch (status) {
-                case LoaderCallbackInterface.SUCCESS: {
-                    if (XDebug.LOG)
-                        Log.i(MainActivity.TAG, "OpenCV loaded successfully");
-                    mOpenCvCameraView.enableView();
-                }
-                break;
-                default: {
-                    super.onManagerConnected(status);
-                }
-                break;
-            }
-        }
-    };
-
+    Thread frameHandlerThread;
+    FrameHandler frameHandler;
+    ServerHandler serverhandler;
+    private ServerResponseHandler serverResponseHandler;
+    private Thread serverResponseThread;
     public MainActivity() {
         gestureDetector = new GestureDetector(context, new GestureListener());
         if (XDebug.LOG)
@@ -134,49 +104,79 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
-
         super.onCreate(savedInstanceState);
         context = this;
-        display = ((WindowManager) this.getSystemService(WINDOW_SERVICE)).getDefaultDisplay();
-
-        requestWindowFeature(Window.FEATURE_NO_TITLE);
-        this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
-
-        matVideoWriter = new MatVideoWriter(context);
-        setContentView(R.layout.activity_main);
-
         if (webSocket == null) {
             webSocket = new ClientWebSocket();
             Log.i(MainActivity.TAG, "About to connect to WS");
             webSocket.connect(context);
         }
+        //Init media writers and location,sensor trackers
+        serverhandler = new ServerHandler(context);
 
-        if (sensorLogger == null) {
-            sensorLogger = new SensorDataLogger();
+        //Spawn thread for handler for server response to Alice
+        serverResponseHandler = new ServerResponseHandler();
+        serverResponseThread = new Thread(serverResponseHandler);
+
+        //Spawn thread for frame handler
+        initFrameHandler();
+
+        requestWindowFeature(Window.FEATURE_NO_TITLE);
+        this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
+
+        setContentView(R.layout.activity_main);
+
+
+        mPreview = (CameraSourcePreview) findViewById(R.id.ZoomCameraView);
+        mPreview.setZoomControl((SeekBar) findViewById(R.id.CameraZoomControls));
+        mGraphicOverlay = (GraphicOverlay) findViewById(R.id.faceOverlay);
+
+        if (cameraManager == null) {
+            cameraManager = new CameraDeviceManager(context, new GraphicFaceTrackerFactory(), frameHandler);
         }
 
-        audioWriter = new AudioWriter(context,audioFlag);
-        mOpenCvCameraView = (ZoomCameraView) findViewById(R.id.ZoomCameraView);
-        mOpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
-        mOpenCvCameraView.setZoomControl((SeekBar) findViewById(R.id.CameraZoomControls));
-        mOpenCvCameraView.enableFpsMeter();
-        mOpenCvCameraView.setCvCameraViewListener(this);
-        // Set front camera as default
-        mOpenCvCameraView.setCameraIndex(mCameraId);
+        // Check for the camera permission before accessing the camera.  If the
+        // permission is not granted yet, request permission.
+        int rc = ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA);
+        if (rc == PackageManager.PERMISSION_GRANTED) {
+            Log.d(MainActivity.TAG,"SWITCHING TO FRONT CAMERA");
+            cameraManager.createCameraSource();
+        } else {
+            requestVideoPermission();
+        }
+
         Intent intent = new Intent(MainActivity.this, StoreService.class);
         bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE);
         checkForUpdates();
+    }
+
+    protected ServerHandler getServerHandler() {
+        return this.serverhandler;
+    }
+
+    protected FrameHandler getFrameHandler() {
+        return this.frameHandler;
+    }
+    protected Thread getFrameHandlerThread() {
+        return this.frameHandlerThread;
     }
 
 
     @Override
     public void onPause() {
         super.onPause();
-        if (mOpenCvCameraView != null)
-            mOpenCvCameraView.disableView();
-        if (audioWriter != null)
-            audioWriter.stopRecording();
+
+        mPreview.stop();
+        serverhandler.stop();
         unregisterManagers();
+    }
+
+    //Spawns a new Framehandler thread
+    private void initFrameHandler() {
+        if (frameHandlerThread == null) {
+            frameHandler = new FrameHandler(context);
+            frameHandlerThread = new Thread(frameHandler);
+        }
     }
 
     @Override
@@ -187,35 +187,18 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
             webSocket = new ClientWebSocket();
             webSocket.connect(context);
         }
-        requestVideoPermission();
-        if (hasLocationPermission && locationTracker == null)
-            locationTracker = new LocationTracker();
+        cameraManager.startCameraSource();
+        serverhandler.start();
+        initFrameHandler();
 
-        if (hasVideoPermission) {
-            if (!OpenCVLoader.initDebug()) {
-                if (XDebug.LOG)
-                    Log.d(MainActivity.TAG, "Internal OpenCV library not found. Using OpenCV Manager for initialization");
-                OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_3_0_0, this, mLoaderCallback);
-            } else {
-                if (XDebug.LOG)
-                    Log.d(MainActivity.TAG, "OpenCV library found inside package. Using it!");
-                mLoaderCallback.onManagerConnected(LoaderCallbackInterface.SUCCESS);
-            }
-            audioWriter.startRecording();
-        }
         checkForCrashes();
     }
 
     public void onDestroy() {
         super.onDestroy();
-        if (matVideoWriter != null) {
-            matVideoWriter.stopRecording();
-        }
-        if (audioWriter != null)
-            audioWriter.stopRecording();
-
-        if (mOpenCvCameraView != null)
-            mOpenCvCameraView.disableView();
+        frameHandler.stopRecording();
+        frameHandlerThread = null;
+        serverhandler.stop();
 
         unregisterManagers();
         if (mServiceBound) {
@@ -224,74 +207,6 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
         }
     }
 
-    public void onCameraViewStarted(int width, int height) {
-        srcMat = new Mat();
-        blackMat = new Mat();
-    }
-
-    public void onCameraViewStopped() {
-        if (srcMat != null) {
-            srcMat.release();
-        }
-        if (blackMat != null) {
-            blackMat.release();
-        }
-        matVideoWriter.stopRecording();
-        audioWriter.stopRecording();
-        if (mServiceBound) {
-            context.unbindService(mServiceConnection);
-            mServiceBound = false;
-        }
-    }
-
-    public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
-        if (srcMat != null) {
-            srcMat.release();
-        }
-        // Flip image frame only for front camera to fix orientation
-        if ((mCameraId == 1) && (display.getRotation() == Surface.ROTATION_90)) {
-            int flipFlags = +1;
-            flip(inputFrame.rgba(), srcMat, flipFlags);
-        } else {
-            srcMat = inputFrame.rgba();
-        }
-
-        if (matVideoWriter.isRecording()) {
-            matVideoWriter.write(srcMat, webSocket);
-        }
-        if (serverReply != null) {
-            if (serverReply.isReply() == true) {
-
-                Imgproc.rectangle(srcMat, serverReply.getP1(), serverReply.getP2(), serverReply.getScalar(), serverReply.getThickness());
-
-                if (serverReply.getZoom() != 0)
-                    mOpenCvCameraView.increaseZoom(serverReply.getZoom());
-
-                if (XDebug.LOG) {
-                    // TODO: This should be done only on server's command. Uncomment later.
-                    if(mServiceBound) {
-                      //  storeFramesService.save(matVideoWriter.captureBitmap(srcMat));
-                    }
-                }
-                return srcMat;
-            }
-
-            if (serverReply.getDisplay()) {
-                // Wake up if the display is set to true
-                return srcMat;
-            } else {
-                // return a black mat when server replies with false for Display.
-                blackMat = srcMat.clone();
-                blackMat.setTo(new Scalar(0, 0, 0));
-                return blackMat;
-            }
-        } else {
-            // return black frame unless woken up explicitly by server.
-            blackMat = srcMat.clone();
-            blackMat.setTo(new Scalar(0, 0, 0));
-            return blackMat;
-        }
-    }
     // Use Hockey Framework to collect crash reports on clients.
     private void checkForCrashes() {
         CrashManager.register(this);
@@ -331,19 +246,72 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
             // triggers after onDown only for long press
             if(XDebug.LOG)
                 Log.i(MainActivity.TAG, "Long Press");
-            mOpenCvCameraView.resetZoom();
+            //RIP-OCV --- COMMENTING THIS TEMPORARILY.NEED TO RESURRECT FUNCTIONALITY
+            //mOpenCvCameraView.resetZoom();
+
             super.onLongPress(event);
 
         }
     }
 
+
     // Upon double tap, swap front  and back cameras
     public void swapCamera() {
-        mCameraId = mCameraId^1;
-        mOpenCvCameraView.disableView();
-        mOpenCvCameraView.setCameraIndex(mCameraId);
-        mOpenCvCameraView.enableView();
+        cameraManager.swapCameraSource();
     }
+
+
+    // Setup to be able to call frame saving to object storage.
+    private ServiceConnection mServiceConnection = new ServiceConnection() {
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            mServiceBound = false;
+        }
+
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            StoreService.AliceServiceBinder myBinder = (StoreService.AliceServiceBinder) service;
+            storeFramesService = myBinder.getService();
+            mServiceBound = true;
+        }
+    };
+
+
+    /**
+     * Factory for creating a face tracker to be associated with a new face.  The multiprocessor
+     * uses this factory to create face trackers as needed -- one for each individual.
+     */
+    private class GraphicFaceTrackerFactory implements MultiProcessor.Factory<Face> {
+        @Override
+        public Tracker<Face> create(Face face) {
+            return new GraphicFaceTracker(mGraphicOverlay);
+        }
+    }
+
+    // Callback for CameraDeviceManager to start preview
+    public void startPreview(CameraSource cameraSource) throws IOException {
+
+        mPreview.start(cameraSource,mGraphicOverlay);
+    }
+
+    private class ServerResponseHandler implements Runnable {
+
+
+        public ServerResponseHandler() {
+            Log.d(MainActivity.TAG, "SERVER HANDLER STARTED");
+            running = true;
+        }
+
+        @Override
+        public void run() {
+            while (true) {
+                ServerResponseTask stask = new ServerResponseTask(serverReply, mGraphicOverlay, mPreview, mServiceBound);
+                stask.execute();
+            }
+
+        }
+    }
+    // Get Video Permissions
 
     /**
      * Gets whether you should show UI with rationale for requesting permissions.
@@ -426,7 +394,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
         // Make sure it's our original REQUEST_VIDEO_PERMISSIONS request
 
         if (requestCode == REQUEST_VIDEO_PERMISSIONS) {
-           ArrayList<String> permissionsNeededYet = getPendingPermissions(grantResults,permissions);
+            ArrayList<String> permissionsNeededYet = getPendingPermissions(grantResults,permissions);
             if (permissionsNeededYet.size() == 0){
                 //all permissions granted - allow camera access
                 return;
@@ -455,24 +423,10 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
             }
         };
 
-        Snackbar.make(mOpenCvCameraView, R.string.permission_camera_rationale,
+        Snackbar.make(mPreview, R.string.permission_camera_rationale,
                 Snackbar.LENGTH_INDEFINITE)
                 .setAction(R.string.ok, listener)
                 .show();
     }
 
-    // Setup to be able to call frame saving to object storage.
-    private ServiceConnection mServiceConnection = new ServiceConnection() {
-        @Override
-        public void onServiceDisconnected(ComponentName name) {
-            mServiceBound = false;
-        }
-
-        @Override
-        public void onServiceConnected(ComponentName name, IBinder service) {
-            StoreService.AliceServiceBinder myBinder = (StoreService.AliceServiceBinder) service;
-            storeFramesService = myBinder.getService();
-            mServiceBound = true;
-        }
-    };
 }

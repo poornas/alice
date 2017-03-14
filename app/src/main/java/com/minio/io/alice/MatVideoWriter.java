@@ -22,9 +22,11 @@ package com.minio.io.alice;
 
 import android.content.Context;
 import android.graphics.Bitmap;
-
-import org.opencv.android.Utils;
-import org.opencv.core.Mat;
+import android.renderscript.Allocation;
+import android.renderscript.Element;
+import android.renderscript.RenderScript;
+import android.renderscript.ScriptIntrinsicYuvToRGB;
+import android.renderscript.Type;
 
 import java.io.ByteArrayOutputStream;
 
@@ -38,8 +40,6 @@ public class MatVideoWriter {
         boolean recording;
         AliceTask vTask;
         Context context;
-        Mat mat;
-        byte[] matByteArray;
 
         public  MatVideoWriter(Context context) {
             this.context = context;
@@ -47,39 +47,9 @@ public class MatVideoWriter {
 
         }
 
-        public void write(Mat mat, ClientWebSocket webSocket){
-            vTask = new AliceTask(captureBitmap(mat));
+        public void write(byte[] data,int width, int height) {
+            vTask = new AliceTask(YUVtoJPEG(context,width,height,data));
             vTask.execute();
-        }
-
-        // Formats Mat Object to BitMap Byte Array.
-        public byte[] captureBitmap(Mat mat) {
-            Bitmap bitmap;
-            try {
-                bitmap = Bitmap.createBitmap(mat.cols(), mat.rows(), Bitmap.Config.ARGB_8888);
-                Utils.matToBitmap(mat, bitmap);
-
-                ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
-                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, byteStream);
-
-                // Convert ByteArrayOutputStream to byte array. Close stream.
-                matByteArray = byteStream.toByteArray();
-
-                byteStream.close();
-                return matByteArray;
-
-            } catch (Exception e) {
-                System.out.println(e.getMessage());
-            }
-            return null;
-        }
-
-        // Formats Mat Object to Raw Byte Array.
-        private byte[] captureRawBytes(Mat mat) {
-            int length = (int) (mat.total() * mat.elemSize());
-            matByteArray = new byte[length];
-            mat.get(0, 0, matByteArray);
-            return matByteArray;
         }
 
         public boolean isRecording() {
@@ -90,7 +60,27 @@ public class MatVideoWriter {
         public void stopRecording() {
             recording = false;
             vTask = null;
-            matByteArray = null;
         }
 
+        //Converts Android's NV21 image format to RGBA_8888, and then to the compressed JPEG
+        // format recognized by  the server
+         public byte[] YUVtoJPEG(Context context, int width, int height, byte[] nv21) {
+            //Uses Renderscript intrinsic function to convert from NV21 image format to RGBA_8888
+            RenderScript rs = RenderScript.create(context);
+            ScriptIntrinsicYuvToRGB yuvToRgbIntrinsic = ScriptIntrinsicYuvToRGB.create(rs, Element.U8_4(rs));
+            Type.Builder yuvType = new Type.Builder(rs, Element.U8(rs)).setX(nv21.length);
+            Allocation in = Allocation.createTyped(rs, yuvType.create(), Allocation.USAGE_SCRIPT);
+            Type.Builder rgbaType = new Type.Builder(rs, Element.RGBA_8888(rs)).setX(width).setY(height);
+            Allocation out = Allocation.createTyped(rs, rgbaType.create(), Allocation.USAGE_SCRIPT);
+            in.copyFrom(nv21);
+            yuvToRgbIntrinsic.setInput(in);
+            yuvToRgbIntrinsic.forEach(out);
+
+            //Convert RGBA_8888 to ARGB_8888 compressed JPEG format
+            Bitmap bitmap = Bitmap.createBitmap(width,height, Bitmap.Config.ARGB_8888);
+            out.copyTo(bitmap);
+            ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, byteStream);
+            return byteStream.toByteArray();
+        }
 }

@@ -43,14 +43,18 @@ public class AudioWriter {
 
     private boolean recording;
 
-    public AudioWriter(Context context,boolean audioFlag) {
-
-        this.sendAudio = audioFlag;
+    public AudioWriter(Context context) {
         BUFFER_SIZE = AudioRecord.getMinBufferSize(SAMPLE_RATE, CHANNEL_CONFIG, AUDIO_ENCODING);
-
         this.context = context;
         startRecording();
     }
+
+
+    public AudioWriter(Context context,boolean audioFlag) {
+        this(context);
+        this.sendAudio = audioFlag;
+    }
+
 
     public boolean isRecording() {
         return (audioRecord != null) && (audioRecord.getRecordingState() == AudioRecord.RECORDSTATE_RECORDING);
