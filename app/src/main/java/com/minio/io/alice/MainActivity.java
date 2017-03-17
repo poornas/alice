@@ -73,7 +73,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
     public static ClientWebSocket webSocket = null;
     public static Context context;
     public static String TAG = "__ALICE__";
-    public static XPly serverReply;
+    public static XRayDetectResult serverReply;
     Mat srcMat, blackMat;
 
     private static final int REQUEST_VIDEO_PERMISSIONS = 1;

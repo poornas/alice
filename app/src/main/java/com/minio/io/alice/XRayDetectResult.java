@@ -27,7 +27,7 @@ import org.opencv.core.Point;
 import org.opencv.core.Scalar;
 
 // This class is populated when server sends data. It needs a lot of improvement.
-public class XPly {
+public class XRayDetectResult {
 
 
     private Point p1;
@@ -44,7 +44,7 @@ public class XPly {
     JSONArray positions;
     private static boolean isReply = false;
 
-    public XPly(String replyMessage) {
+    public XRayDetectResult(String replyMessage) {
 
         try {
             replyObject = new JSONObject(replyMessage) ;
