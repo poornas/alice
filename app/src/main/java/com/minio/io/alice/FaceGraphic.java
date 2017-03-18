@@ -51,7 +51,7 @@ class FaceGraphic extends GraphicOverlay.Graphic {
     private int mFaceId;
     private float mFaceHappiness;
     private boolean isServerOverlay = false;
-    private XPly xply;
+    private XrayDetectResult xply;
     FaceGraphic(GraphicOverlay overlay) {
         super(overlay);
 
@@ -73,7 +73,7 @@ class FaceGraphic extends GraphicOverlay.Graphic {
     }
 
     //Override constructor if we are overlaying with server response
-    FaceGraphic(GraphicOverlay overlay, XPly serverReply) {
+    FaceGraphic(GraphicOverlay overlay, XrayDetectResult serverReply) {
         super(overlay);
         isServerOverlay = true;
         this.xply = serverReply;

@@ -87,6 +87,7 @@ public class FrameHandler implements Runnable {
             byte[] data = getFrame();
             if (data != null) {
                 serverHandler.sendVideoFrame(data,mPreviewSize.getWidth(),mPreviewSize.getHeight());
+
             }
         }
 

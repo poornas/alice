@@ -60,8 +60,7 @@ public class MainActivity extends Activity  implements PreviewCallback {
     public static ClientWebSocket webSocket = null;
     public static Context context;
     public static String TAG = "__ALICE__";
-    public static XRayDetectResult serverReply;
-    Mat srcMat, blackMat;
+    public static XrayDetectResult serverReply;
 
     private static final int REQUEST_VIDEO_PERMISSIONS = 1;
     private boolean hasVideoPermission = false;
@@ -215,7 +214,7 @@ public class MainActivity extends Activity  implements PreviewCallback {
     // Hockey App Distribution
     private void checkForUpdates() {
         // Remove this for store builds!
-        UpdateManager.register(this);
+       // UpdateManager.register(this);
     }
 
     private void unregisterManagers() {

@@ -97,7 +97,7 @@ public class CameraDeviceManager {
         }
 
         mCameraSource = new CameraSource.Builder(context, detector)
-                .setRequestedPreviewSize(640, 480)
+                .setRequestedPreviewSize(1080, 720)
                 .setFacing(cameraId)
                 .setRequestedFps(30.0f)
                 .setFrameHandler(mframeHandler)

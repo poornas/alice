@@ -29,7 +29,7 @@ import android.os.AsyncTask;
 
 public class ServerResponseTask extends AsyncTask<Void, Void, Void> {
 
-    XPly serverReply;
+    XrayDetectResult serverReply;
     boolean isAliceAwake = false;
     boolean setZoom = false;
     byte[] bufmat;
@@ -39,7 +39,7 @@ public class ServerResponseTask extends AsyncTask<Void, Void, Void> {
     CameraSourcePreview mPreview;
     GraphicOverlay mServerOverlay;
     boolean mServiceBound;
-    public ServerResponseTask(XPly xply,GraphicOverlay serverOverlay, CameraSourcePreview preview,boolean servicebound) {
+    public ServerResponseTask(XrayDetectResult xply, GraphicOverlay serverOverlay, CameraSourcePreview preview, boolean servicebound) {
         serverReply = xply;
         mPreview =  preview;
         mServerOverlay = serverOverlay;

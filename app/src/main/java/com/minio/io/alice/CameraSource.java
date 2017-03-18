@@ -283,7 +283,7 @@ public class CameraSource {
     }
 
     public interface FrameCallback {
-        void onServerReply(XPly serverReply);
+        void onServerReply(XrayDetectResult serverReply);
         void onFrameDetect(byte[] data);
     }
     /**
