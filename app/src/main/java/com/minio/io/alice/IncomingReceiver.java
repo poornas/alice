@@ -43,7 +43,7 @@ public class IncomingReceiver extends BroadcastReceiver {
                 Log.i(MainActivity.TAG, msg);
  
 
-            MainActivity.serverReply = new XrayDetectResult(msg);
+            MainActivity.serverReply = new XrayResult(msg);
  
         }
     }
