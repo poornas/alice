@@ -31,7 +31,6 @@ import android.util.Log;
 
 public class IncomingReceiver extends BroadcastReceiver {
 
-
     public IncomingReceiver() {
     }
 
@@ -42,7 +41,7 @@ public class IncomingReceiver extends BroadcastReceiver {
         if (msg != null) {
             if(XDebug.LOG)
                 Log.i(MainActivity.TAG, msg);
-            MainActivity.serverReply = new XRayDetectResult(msg);
+            MainActivity.serverReply = new XrayResult(msg);
         }
     }
 }

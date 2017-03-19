@@ -60,14 +60,12 @@ public class MainActivity extends Activity  implements PreviewCallback {
     public static ClientWebSocket webSocket = null;
     public static Context context;
     public static String TAG = "__ALICE__";
-    public static XrayDetectResult serverReply;
+    public static XrayResult serverReply;
 
     private static final int REQUEST_VIDEO_PERMISSIONS = 1;
     private boolean hasVideoPermission = false;
     private boolean hasLocationPermission = false;
 
-    StoreService storeFramesService;
-    boolean mServiceBound = false;
     boolean running = true;
     public static LocationTracker locationTracker;
 
@@ -97,7 +95,6 @@ public class MainActivity extends Activity  implements PreviewCallback {
 
     @Override
     public boolean onTouchEvent(MotionEvent e) {
-
         return gestureDetector.onTouchEvent(e);
     }
 
@@ -110,21 +107,21 @@ public class MainActivity extends Activity  implements PreviewCallback {
             Log.i(MainActivity.TAG, "About to connect to WS");
             webSocket.connect(context);
         }
-        //Init media writers and location,sensor trackers
+
+        // Init media writers and location,sensor trackers
         serverhandler = new ServerHandler(context);
 
-        //Spawn thread for handler for server response to Alice
+        // Spawn thread for handler for server response to Alice
         serverResponseHandler = new ServerResponseHandler();
         serverResponseThread = new Thread(serverResponseHandler);
 
-        //Spawn thread for frame handler
+        // Spawn thread for frame handler
         initFrameHandler();
 
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
         setContentView(R.layout.activity_main);
-
 
         mPreview = (CameraSourcePreview) findViewById(R.id.ZoomCameraView);
         mPreview.setZoomControl((SeekBar) findViewById(R.id.CameraZoomControls));
@@ -144,8 +141,7 @@ public class MainActivity extends Activity  implements PreviewCallback {
             requestVideoPermission();
         }
 
-        Intent intent = new Intent(MainActivity.this, StoreService.class);
-        bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE);
+        // Check for updates on hockey.
         checkForUpdates();
     }
 
@@ -200,10 +196,6 @@ public class MainActivity extends Activity  implements PreviewCallback {
         serverhandler.stop();
 
         unregisterManagers();
-        if (mServiceBound) {
-            context.unbindService(mServiceConnection);
-            mServiceBound = false;
-        }
     }
 
     // Use Hockey Framework to collect crash reports on clients.
@@ -259,23 +251,6 @@ public class MainActivity extends Activity  implements PreviewCallback {
         cameraManager.swapCameraSource();
     }
 
-
-    // Setup to be able to call frame saving to object storage.
-    private ServiceConnection mServiceConnection = new ServiceConnection() {
-        @Override
-        public void onServiceDisconnected(ComponentName name) {
-            mServiceBound = false;
-        }
-
-        @Override
-        public void onServiceConnected(ComponentName name, IBinder service) {
-            StoreService.AliceServiceBinder myBinder = (StoreService.AliceServiceBinder) service;
-            storeFramesService = myBinder.getService();
-            mServiceBound = true;
-        }
-    };
-
-
     /**
      * Factory for creating a face tracker to be associated with a new face.  The multiprocessor
      * uses this factory to create face trackers as needed -- one for each individual.
@@ -289,13 +264,10 @@ public class MainActivity extends Activity  implements PreviewCallback {
 
     // Callback for CameraDeviceManager to start preview
     public void startPreview(CameraSource cameraSource) throws IOException {
-
-        mPreview.start(cameraSource,mGraphicOverlay);
+        mPreview.start(cameraSource, mGraphicOverlay);
     }
 
     private class ServerResponseHandler implements Runnable {
-
-
         public ServerResponseHandler() {
             Log.d(MainActivity.TAG, "SERVER HANDLER STARTED");
             running = true;
@@ -304,10 +276,9 @@ public class MainActivity extends Activity  implements PreviewCallback {
         @Override
         public void run() {
             while (true) {
-                ServerResponseTask stask = new ServerResponseTask(serverReply, mGraphicOverlay, mPreview, mServiceBound);
+                ServerResponseTask stask = new ServerResponseTask(serverReply, mGraphicOverlay, mPreview);
                 stask.execute();
             }
-
         }
     }
     // Get Video Permissions

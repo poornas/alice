@@ -36,19 +36,18 @@ import java.io.ByteArrayOutputStream;
  */
 
 public class MatVideoWriter {
-
         boolean recording;
         AliceTask vTask;
         Context context;
 
-        public  MatVideoWriter(Context context) {
+        public MatVideoWriter(Context context) {
             this.context = context;
             recording = true;
 
         }
 
         public void write(byte[] data,int width, int height) {
-            vTask = new AliceTask(YUVtoJPEG(context,width,height,data));
+            vTask = new AliceTask(YUVtoJPEG(context, width, height, data));
             vTask.execute();
         }
 
@@ -62,10 +61,10 @@ public class MatVideoWriter {
             vTask = null;
         }
 
-        //Converts Android's NV21 image format to RGBA_8888, and then to the compressed JPEG
-        // format recognized by  the server
+        // Converts Android's NV21 image format to RGBA_8888, and then
+        // to the compressed JPEG format recognized by the server
          public byte[] YUVtoJPEG(Context context, int width, int height, byte[] nv21) {
-            //Uses Renderscript intrinsic function to convert from NV21 image format to RGBA_8888
+            // Uses Renderscript intrinsic function to convert from NV21 image format to RGBA_8888
             RenderScript rs = RenderScript.create(context);
             ScriptIntrinsicYuvToRGB yuvToRgbIntrinsic = ScriptIntrinsicYuvToRGB.create(rs, Element.U8_4(rs));
             Type.Builder yuvType = new Type.Builder(rs, Element.U8(rs)).setX(nv21.length);
@@ -73,10 +72,11 @@ public class MatVideoWriter {
             Type.Builder rgbaType = new Type.Builder(rs, Element.RGBA_8888(rs)).setX(width).setY(height);
             Allocation out = Allocation.createTyped(rs, rgbaType.create(), Allocation.USAGE_SCRIPT);
             in.copyFrom(nv21);
+
             yuvToRgbIntrinsic.setInput(in);
             yuvToRgbIntrinsic.forEach(out);
 
-            //Convert RGBA_8888 to ARGB_8888 compressed JPEG format
+            // Convert RGBA_8888 to ARGB_8888 compressed JPEG format
             Bitmap bitmap = Bitmap.createBitmap(width,height, Bitmap.Config.ARGB_8888);
             out.copyTo(bitmap);
             ByteArrayOutputStream byteStream = new ByteArrayOutputStream();

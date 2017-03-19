@@ -48,9 +48,6 @@ public class FrameHandler implements Runnable {
         main_activity = (MainActivity) context;
         serverHandler = main_activity.getServerHandler();
     }
-    public boolean isRecording() {
-        return recording;
-    }
 
     public void stopRecording() {
         this.recording = false;
@@ -73,25 +70,23 @@ public class FrameHandler implements Runnable {
             mQueue.add(data);
         }
     }
-    //Poll queue for new frames
+
+    // Poll queue for new frames
     public byte[] getFrame() {
         synchronized (mQueue) {
             return mQueue.poll();
         }
     }
 
-    // Hand incoming frames to serverhandler
+    // Send incoming frames to serverHandler.
     @Override
     public void run() {
         while (recording) {
             byte[] data = getFrame();
             if (data != null) {
-                serverHandler.sendVideoFrame(data,mPreviewSize.getWidth(),mPreviewSize.getHeight());
-
+                serverHandler.sendVideoFrame(data, mPreviewSize.getWidth(), mPreviewSize.getHeight());
             }
         }
 
     }
-
-    
 }

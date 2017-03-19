@@ -47,8 +47,8 @@ public class ClientWebSocket {
             Replace with the IP address of local xray server
             if needed.
         */
-        //final String wsuri = "ws://147.75.201.195:80";
-        final String wsuri = "ws://192.168.1.51:8080";
+        // final String wsuri = "ws://147.75.201.195:80";
+        final String wsuri = "ws://192.168.1.106:8080";
 
         final WebSocketOptions webSocketOptions = new WebSocketOptions();
         webSocketOptions.setMaxMessagePayloadSize(100 * 1024 * 1024);

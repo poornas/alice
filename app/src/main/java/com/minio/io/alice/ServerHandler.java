@@ -71,7 +71,7 @@ public class ServerHandler  {
 
     public void sendVideoFrame(byte[] data,int width,int height) {
         if (matVideoWriter.isRecording()) {
-            matVideoWriter.write(data,width,height);
+            matVideoWriter.write(data, width, height);
         }
     }
 

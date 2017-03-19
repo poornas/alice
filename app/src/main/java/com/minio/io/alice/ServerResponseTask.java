@@ -28,76 +28,42 @@ import android.os.AsyncTask;
  */
 
 public class ServerResponseTask extends AsyncTask<Void, Void, Void> {
-
-    XrayDetectResult serverReply;
-    boolean isAliceAwake = false;
+    XrayResult serverResult;
     boolean setZoom = false;
-    byte[] bufmat;
-    String data;
-    boolean textPayload = false;
-    private FaceGraphic mFaceGraphic, mPrevFaceGraphic;
     CameraSourcePreview mPreview;
     GraphicOverlay mServerOverlay;
-    boolean mServiceBound;
-    public ServerResponseTask(XrayDetectResult xply, GraphicOverlay serverOverlay, CameraSourcePreview preview, boolean servicebound) {
-        serverReply = xply;
+
+    public ServerResponseTask(XrayResult xresult, GraphicOverlay serverOverlay, CameraSourcePreview preview) {
+        serverResult = xresult;
         mPreview =  preview;
         mServerOverlay = serverOverlay;
-        mServiceBound = servicebound;
-        mFaceGraphic = null;
-        //mPrevFaceGraphic = null;
     }
 
 
     @Override
-    protected void onPreExecute() {
-
-    }
+    protected void onPreExecute() {}
 
     @Override
     protected Void doInBackground(Void ... params) {
-        if (serverReply != null) {
-            if (serverReply.isReply() == true) {
-                //TODO: Overlay rectangles on view
-                mPrevFaceGraphic = mFaceGraphic;
-                mFaceGraphic = new FaceGraphic(mServerOverlay, serverReply);
-                //TODO: If zoom, increase zoom
-                if (serverReply.getZoom() != 0)
+        if (serverResult != null) {
+            if (serverResult.isReply() == true) {
+                // TODO: If zoom, increase zoom
+                if (serverResult.getZoom() != 0)
                     setZoom = true;
-
 
                 if (XDebug.LOG) {
                     // TODO: This should be done only on server's command. Uncomment later.
-                    if (mServiceBound) {
-                        //  storeFramesService.save(matVideoWriter.captureBitmap(srcMat));
-                    }
                 }
             }
-
-            if (serverReply.getDisplay()) {
-                // Wake up if the display is set to true
-                //TODO Turn on display preview
-                isAliceAwake = true;
-            } else {
-                // return a black mat when server replies with false for Display.
-                //TODO: turn screen black
-                isAliceAwake = false;
-            }
-
         }
         return null;
     }
 
     protected void onPostExecute(String finish) {
         if (setZoom)
-            mPreview.increaseZoom(serverReply.getZoom());
-        if (isAliceAwake)
-            mServerOverlay.showScreen();
-        else
-            mServerOverlay.hideScreen();
+            mPreview.increaseZoom(serverResult.getZoom());
 
-        if (mFaceGraphic != null)
-            mServerOverlay.add(mFaceGraphic);
+        mServerOverlay.showScreen();
         mServerOverlay.postInvalidate();
     }
 }

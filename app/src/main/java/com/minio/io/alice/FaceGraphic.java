@@ -21,6 +21,8 @@ import android.graphics.Paint;
 
 import com.google.android.gms.vision.face.Face;
 
+import java.util.Locale;
+
 /**
  * Graphic instance for rendering face position, orientation, and landmarks within an associated
  * graphic overlay view.
@@ -46,13 +48,15 @@ class FaceGraphic extends GraphicOverlay.Graphic {
     private Paint mFacePositionPaint;
     private Paint mIdPaint;
     private Paint mBoxPaint;
-    private Paint mXBoxPaint;
     private volatile Face mFace;
     private int mFaceId;
-    private float mFaceHappiness;
-    private boolean isServerOverlay = false;
-    private XrayDetectResult xply;
+    XrayResult serverReply;
+
     FaceGraphic(GraphicOverlay overlay) {
+        this(overlay, null);
+    }
+
+    FaceGraphic(GraphicOverlay overlay, XrayResult serverReply) {
         super(overlay);
 
         mCurrentColorIndex = (mCurrentColorIndex + 1) % COLOR_CHOICES.length;
@@ -69,18 +73,8 @@ class FaceGraphic extends GraphicOverlay.Graphic {
         mBoxPaint.setColor(selectedColor);
         mBoxPaint.setStyle(Paint.Style.STROKE);
         mBoxPaint.setStrokeWidth(BOX_STROKE_WIDTH);
-        xply = null;
-    }
 
-    //Override constructor if we are overlaying with server response
-    FaceGraphic(GraphicOverlay overlay, XrayDetectResult serverReply) {
-        super(overlay);
-        isServerOverlay = true;
-        this.xply = serverReply;
-        mBoxPaint = new Paint();
-        mBoxPaint.setColor(Color.RED);  //TODO: need to convert server's scalar
-        mBoxPaint.setStyle(Paint.Style.STROKE);
-        mBoxPaint.setStrokeWidth(serverReply.getThickness());
+        serverReply = serverReply;
     }
 
     void setId(int id) {
@@ -104,36 +98,33 @@ class FaceGraphic extends GraphicOverlay.Graphic {
     public void draw(Canvas canvas) {
 
         float xOffset, yOffset;
-        float left,right, top, bottom;
+        float left, right, top, bottom;
 
-        if (isServerOverlay) {
-            canvas.drawRect((float)xply.getP1().x,(float)xply.getP1().y,(float)xply.getP2().x,(float)xply.getP2().y,mBoxPaint);
-        }
-        else {
-            Face face = mFace;
-            if (face == null) {
-                return;
-            }
-
-            // Draws a circle at the position of the detected face, with the face's track id below.
-            float x = translateX(face.getPosition().x + face.getWidth() / 2);
-            float y = translateY(face.getPosition().y + face.getHeight() / 2);
-            canvas.drawCircle(x, y, FACE_POSITION_RADIUS, mFacePositionPaint);
-            canvas.drawText("id: " + mFaceId, x + ID_X_OFFSET, y + ID_Y_OFFSET, mIdPaint);
-            canvas.drawText("happiness: " + String.format("%.2f", face.getIsSmilingProbability()), x - ID_X_OFFSET, y - ID_Y_OFFSET, mIdPaint);
-            canvas.drawText("right eye: " + String.format("%.2f", face.getIsRightEyeOpenProbability()), x + ID_X_OFFSET * 2, y + ID_Y_OFFSET * 2, mIdPaint);
-            canvas.drawText("left eye: " + String.format("%.2f", face.getIsLeftEyeOpenProbability()), x - ID_X_OFFSET*2, y - ID_Y_OFFSET*2, mIdPaint);
-
-            // Draws a bounding box around the face.
-            xOffset = scaleX(face.getWidth() / 2.0f);
-            yOffset = scaleY(face.getHeight() / 2.0f);
-            left = x - xOffset;
-            top = y - yOffset;
-            right = x + xOffset;
-            bottom = y + yOffset;
-            canvas.drawRect(left, top, right, bottom, mBoxPaint);
+        Face face = mFace;
+        if (face == null) {
+            return;
         }
 
+        // Draws a circle at the position of the detected face,
+        // with the face's track id below.
+        float x = translateX(face.getPosition().x + face.getWidth() / 2);
+        float y = translateY(face.getPosition().y + face.getHeight() / 2);
+        canvas.drawCircle(x, y, FACE_POSITION_RADIUS, mFacePositionPaint);
+        canvas.drawText("id: " + mFaceId, x + ID_X_OFFSET, y + ID_Y_OFFSET, mIdPaint);
+        canvas.drawText("happiness: " + String.format(Locale.ROOT, "%.2f",
+                face.getIsSmilingProbability()), x - ID_X_OFFSET, y - ID_Y_OFFSET, mIdPaint);
+        canvas.drawText("right eye: " + String.format(Locale.ROOT, "%.2f",
+                face.getIsRightEyeOpenProbability()), x + ID_X_OFFSET * 2, y + ID_Y_OFFSET * 2, mIdPaint);
+        canvas.drawText("left eye: " + String.format(Locale.ROOT, "%.2f",
+                face.getIsLeftEyeOpenProbability()), x - ID_X_OFFSET * 2, y - ID_Y_OFFSET * 2, mIdPaint);
+
+        // Draws a bounding box around the face.
+        xOffset = scaleX(face.getWidth() / 2.0f);
+        yOffset = scaleY(face.getHeight() / 2.0f);
+        left = x - xOffset;
+        top = y - yOffset;
+        right = x + xOffset;
+        bottom = y + yOffset;
+        canvas.drawRect(left, top, right, bottom, mBoxPaint);
     }
-
 }
