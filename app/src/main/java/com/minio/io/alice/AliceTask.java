@@ -21,6 +21,10 @@
 package com.minio.io.alice;
 
 import android.os.AsyncTask;
+import android.util.SparseArray;
+
+import com.google.android.gms.vision.Frame;
+import com.google.android.gms.vision.face.Face;
 
 /**
  * AsyncTask that sends the video buffer over to the Xray Server.
@@ -40,6 +44,11 @@ public class AliceTask extends AsyncTask<Void, Integer, String> {
     public AliceTask(String data) {
         this.data = data;
         this.textPayload = true;
+    }
+
+    public AliceTask(Frame.Metadata metadata, SparseArray<Face> faces) {
+        this.textPayload = true;
+        this.data = new FrameMetaData(metadata,faces).toString();
     }
     @Override
     protected void onPreExecute() {

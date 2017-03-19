@@ -80,6 +80,8 @@ public class MainActivity extends Activity  implements PreviewCallback {
     private CameraSourcePreview mPreview;
     private GraphicOverlay mGraphicOverlay;
 
+    private static int mCameraId = CameraSource.CAMERA_FACING_FRONT;
+
     private CameraDeviceManager cameraManager;
 
     Thread frameHandlerThread;
@@ -108,6 +110,7 @@ public class MainActivity extends Activity  implements PreviewCallback {
             webSocket.connect(context);
         }
 
+ 
         // Init media writers and location,sensor trackers
         serverhandler = new ServerHandler(context);
 
@@ -133,13 +136,10 @@ public class MainActivity extends Activity  implements PreviewCallback {
 
         // Check for the camera permission before accessing the camera.  If the
         // permission is not granted yet, request permission.
-        int rc = ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA);
-        if (rc == PackageManager.PERMISSION_GRANTED) {
-            Log.d(MainActivity.TAG,"SWITCHING TO FRONT CAMERA");
-            cameraManager.createCameraSource();
-        } else {
+        if (!checkSelfPermission(VIDEO_PERMISSIONS))
+            cameraManager.createCameraSource(mCameraId);
+        else
             requestVideoPermission();
-        }
 
         // Check for updates on hockey.
         checkForUpdates();
@@ -161,6 +161,7 @@ public class MainActivity extends Activity  implements PreviewCallback {
     public void onPause() {
         super.onPause();
 
+        cameraManager.pauseCameraResource();
         mPreview.stop();
         serverhandler.stop();
         unregisterManagers();
@@ -190,11 +191,14 @@ public class MainActivity extends Activity  implements PreviewCallback {
     }
 
     public void onDestroy() {
+
         super.onDestroy();
+
         frameHandler.stopRecording();
         frameHandlerThread = null;
         serverhandler.stop();
 
+        cameraManager.releaseCameraResource();
         unregisterManagers();
     }
 
@@ -206,7 +210,8 @@ public class MainActivity extends Activity  implements PreviewCallback {
     // Hockey App Distribution
     private void checkForUpdates() {
         // Remove this for store builds!
-       // UpdateManager.register(this);
+        // UpdateManager.register(this);
+
     }
 
     private void unregisterManagers() {
@@ -237,8 +242,6 @@ public class MainActivity extends Activity  implements PreviewCallback {
             // triggers after onDown only for long press
             if(XDebug.LOG)
                 Log.i(MainActivity.TAG, "Long Press");
-            //RIP-OCV --- COMMENTING THIS TEMPORARILY.NEED TO RESURRECT FUNCTIONALITY
-            //mOpenCvCameraView.resetZoom();
 
             super.onLongPress(event);
 
@@ -248,6 +251,8 @@ public class MainActivity extends Activity  implements PreviewCallback {
 
     // Upon double tap, swap front  and back cameras
     public void swapCamera() {
+
+        mCameraId = (mCameraId ==  CameraSource.CAMERA_FACING_FRONT) ? CameraSource.CAMERA_FACING_BACK : CameraSource.CAMERA_FACING_FRONT;
         cameraManager.swapCameraSource();
     }
 
@@ -269,7 +274,6 @@ public class MainActivity extends Activity  implements PreviewCallback {
 
     private class ServerResponseHandler implements Runnable {
         public ServerResponseHandler() {
-            Log.d(MainActivity.TAG, "SERVER HANDLER STARTED");
             running = true;
         }
 
@@ -281,6 +285,7 @@ public class MainActivity extends Activity  implements PreviewCallback {
             }
         }
     }
+
     // Get Video Permissions
 
     /**
@@ -310,26 +315,27 @@ public class MainActivity extends Activity  implements PreviewCallback {
 
     private void requestVideoPermission() {
 
-        if (checkSelfPermission(VIDEO_PERMISSIONS)) {
-            if (shouldShowRequestPermissionRationale(VIDEO_PERMISSIONS)) {
-                // Show an explanation to the user *asynchronously* -- don't block
-                // this thread waiting for the user's response! After the user
-                // sees the explanation, try again to request the permission.
-                showDialog(VIDEO_PERMISSIONS);
-            } else {
-                // No explanation needed, we can request the permission.
-                ActivityCompat.requestPermissions(this,
-                        VIDEO_PERMISSIONS,
-                        REQUEST_VIDEO_PERMISSIONS);
+        if (shouldShowRequestPermissionRationale(VIDEO_PERMISSIONS)) {
+            // Show an explanation to the user *asynchronously* -- don't block
+            // this thread waiting for the user's response! After the user
+            // sees the explanation, try again to request the permission.
+            ActivityCompat.requestPermissions(this,
+                    VIDEO_PERMISSIONS,
+                    REQUEST_VIDEO_PERMISSIONS);
 
-                // REQUEST_VIDEO_PERMISSIONS is an
-                // app-defined int constant. The callback method gets the
-                // result of the request.
-            }
-
+            //showDialog(VIDEO_PERMISSIONS);
         } else {
-            this.hasVideoPermission = true;
+            // No explanation needed, we can request the permission.
+            ActivityCompat.requestPermissions(this,
+                    VIDEO_PERMISSIONS,
+                    REQUEST_VIDEO_PERMISSIONS);
+
+            // REQUEST_VIDEO_PERMISSIONS is an
+            // app-defined int constant. The callback method gets the
+            // result of the request.
         }
+
+
 
     }
     // Find permissions that were not granted and return as an ArrayList
@@ -362,11 +368,11 @@ public class MainActivity extends Activity  implements PreviewCallback {
                                            @NonNull String permissions[],
                                            @NonNull int[] grantResults) {
         // Make sure it's our original REQUEST_VIDEO_PERMISSIONS request
-
         if (requestCode == REQUEST_VIDEO_PERMISSIONS) {
             ArrayList<String> permissionsNeededYet = getPendingPermissions(grantResults,permissions);
             if (permissionsNeededYet.size() == 0){
                 //all permissions granted - allow camera access
+                cameraManager.createCameraSource(mCameraId);
                 return;
 
             } else {
@@ -375,7 +381,11 @@ public class MainActivity extends Activity  implements PreviewCallback {
 
                 if (!showRationale) {
                     Toast.makeText(this, "Video permission denied.Enable camera and location preferences on the App settings", Toast.LENGTH_SHORT).show();
+                    finish();
+                } else {
+                    Toast.makeText(this, "Alice needs camera,microphone and location enabled to start tracking.Alice will now exit.", Toast.LENGTH_SHORT).show();
                     startActivity(new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:" + BuildConfig.APPLICATION_ID)));
+
                     finish();
                 }
             }
@@ -393,10 +403,9 @@ public class MainActivity extends Activity  implements PreviewCallback {
             }
         };
 
-        Snackbar.make(mPreview, R.string.permission_camera_rationale,
+        Snackbar.make(mGraphicOverlay, R.string.permission_camera_rationale,
                 Snackbar.LENGTH_INDEFINITE)
                 .setAction(R.string.ok, listener)
                 .show();
     }
-
 }

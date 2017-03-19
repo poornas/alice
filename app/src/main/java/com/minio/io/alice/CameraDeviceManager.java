@@ -23,6 +23,7 @@ package com.minio.io.alice;
 import android.content.Context;
 import android.util.Log;
 
+import com.google.android.gms.vision.Detector;
 import com.google.android.gms.vision.MultiProcessor;
 import com.google.android.gms.vision.face.Face;
 import com.google.android.gms.vision.face.FaceDetector;
@@ -36,7 +37,8 @@ import static android.content.ContentValues.TAG;
  */
 
 public class CameraDeviceManager {
-    private static int cameraId;
+
+    private static int mCameraId;
     private Context context;
     private CameraSource mCameraSource;
     private static final int RC_HANDLE_GMS = 9001;
@@ -46,29 +48,21 @@ public class CameraDeviceManager {
     private boolean isCameraIdSet;
 
     public CameraDeviceManager(Context context,MultiProcessor.Factory<Face> faceTrackerFactory,FrameHandler handler) {
-        cameraId = CameraSource.CAMERA_FACING_FRONT;
+
         this.context = context;
         this.graphicFaceTrackerFactory = faceTrackerFactory;
         this.mframeHandler = handler;
         callback = (MainActivity)context;
-        createCameraSource(cameraId);
-        this.isCameraIdSet = false;
     }
 
     public static int getFacingCamera() {
-        return cameraId;
+        return mCameraId;
     }
 
-    public void setFacingCamera() {
-        this.cameraId = cameraId;
+    public void setFacingCamera(int cameraId) {
+        this.mCameraId = cameraId;
     }
 
-    public void createCameraSource() {
-        if (this.isCameraIdSet)
-            this.createCameraSource(cameraId);
-        else
-            this.createCameraSource(CameraSource.CAMERA_FACING_FRONT);
-    }
     /**
      * Creates and starts the camera.  Note that this uses a higher resolution in comparison
      * to other detection examples to enable the barcode detector to detect small barcodes
@@ -76,15 +70,19 @@ public class CameraDeviceManager {
      */
     public void createCameraSource(int cameraId) {
 
+        this.mCameraId = cameraId;
+
         FaceDetector detector = new FaceDetector.Builder(context)
                 .setClassificationType(FaceDetector.ALL_CLASSIFICATIONS)
                 .build();
 
-        detector.setProcessor(
+        //Custom face detector to grab metadata.
+        Detector<Face> customFaceDetector = new CustomFaceDetector(detector);
+        customFaceDetector.setProcessor(
                 new MultiProcessor.Builder<>(this.graphicFaceTrackerFactory)
                         .build());
 
-        if (!detector.isOperational()) {
+        if (!customFaceDetector.isOperational()) {
             // Note: The first time that an app using face API is installed on a device, GMS will
             // download a native library to the device in order to do detection.  Usually this
             // completes before the app is run for the first time.  But if that download has not yet
@@ -96,7 +94,7 @@ public class CameraDeviceManager {
             Log.w(TAG, "Face detector dependencies are not yet available.");
         }
 
-        mCameraSource = new CameraSource.Builder(context, detector)
+        mCameraSource = new CameraSource.Builder(context, customFaceDetector)
                 .setRequestedPreviewSize(1080, 720)
                 .setFacing(cameraId)
                 .setRequestedFps(30.0f)
@@ -131,10 +129,20 @@ public class CameraDeviceManager {
         }
     }
 
+    public void releaseCameraResource() {
+        if (mCameraSource != null) {
+            mCameraSource.release();
+        }
+    }
+    public void pauseCameraResource() {
+        if (mCameraSource != null) {
+            mCameraSource.stop();
+        }
+    }
     public void swapCameraSource() {
-        int switchCameraId =  (cameraId == CameraSource.CAMERA_FACING_FRONT) ? CameraSource.CAMERA_FACING_BACK : CameraSource.CAMERA_FACING_FRONT;
+        int switchCameraId =  (mCameraId == CameraSource.CAMERA_FACING_FRONT) ? CameraSource.CAMERA_FACING_BACK : CameraSource.CAMERA_FACING_FRONT;
         mCameraSource.release();
-        cameraId = switchCameraId;
+        mCameraId = switchCameraId;
         createCameraSource(switchCameraId);
         startCameraSource();
     }
@@ -150,7 +158,7 @@ public class CameraDeviceManager {
 
     public void onResume() {
         if (mCameraSource == null) {
-            this.createCameraSource(cameraId);
+            this.createCameraSource(mCameraId);
             this.startCameraSource();
         }
     }
