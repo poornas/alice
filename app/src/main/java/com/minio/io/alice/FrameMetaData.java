@@ -93,7 +93,7 @@ public class FrameMetaData {
 
                 fObject.put("leftEyeOpen", Float.toString(face.getIsLeftEyeOpenProbability()));
                 fObject.put("rightEyeOpen", Float.toString(face.getIsRightEyeOpenProbability()));
-                fObject.put("similing", Float.toString(face.getIsSmilingProbability()));
+                fObject.put("smiling", Float.toString(face.getIsSmilingProbability()));
 
 
                 // Following block constructs the rectangular points of the face.
