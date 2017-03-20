@@ -19,6 +19,7 @@
  */
 package com.minio.io.alice;
 
+import android.util.FloatProperty;
 import android.util.SparseArray;
 
 import com.google.android.gms.vision.Frame;
@@ -27,7 +28,6 @@ import com.google.android.gms.vision.face.Face;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-
 
 /* Constructs a JSON object from the frame meta data and faces array for send to XRay
  *
@@ -52,7 +52,7 @@ public class FrameMetaData {
         }
     }
 
-    /* Stuff the metadata object */
+    // Constructs frame metadata json object.
     private JSONObject getMetaDataJSON(Frame.Metadata metadata) {
 
         JSONObject meta = null;
@@ -71,28 +71,54 @@ public class FrameMetaData {
         return meta;
     }
 
-    /* Construct the faces JSONArray */
+    // Constructs list of faces json array object.
     private JSONArray getFacesJSON(SparseArray<Face> faces) {
 
         JSONArray faceArray = null;
         try {
             faceArray = new JSONArray();
+
+            float xOffset, yOffset;
+            float left, right, top, bottom;
             for (int i = 0; i < faces.size(); i++) {
                 int key = faces.keyAt(i);
                 Face face = faces.get(key);
-                JSONObject fObject = new JSONObject();
-                fObject.put("id",Integer.toString(face.getId()));
-                fObject.put("eulerY",Float.toString(face.getEulerY()));
-                fObject.put("eulerZ",Float.toString(face.getEulerZ()));
-                fObject.put("height",Float.toString(face.getHeight()));
-                fObject.put("width",Float.toString(face.getWidth()));
 
-                fObject.put("lefteyeopen",Float.toString(face.getIsLeftEyeOpenProbability()));
-                fObject.put("righteyeopen",Float.toString(face.getIsRightEyeOpenProbability()));
-                fObject.put("smiling",Float.toString(face.getIsSmilingProbability()));
-                fObject.put("topX",Float.toString(face.getPosition().x));
-                fObject.put("topY",Float.toString(face.getPosition().x));
-                faceArray.put(i,fObject);
+                JSONObject fObject = new JSONObject();
+                fObject.put("id", Integer.toString(face.getId()));
+                fObject.put("eulerY", Float.toString(face.getEulerY()));
+                fObject.put("eulerZ", Float.toString(face.getEulerZ()));
+                fObject.put("height", Float.toString(face.getHeight()));
+                fObject.put("width", Float.toString(face.getWidth()));
+
+                fObject.put("leftEyeOpen", Float.toString(face.getIsLeftEyeOpenProbability()));
+                fObject.put("rightEyeOpen", Float.toString(face.getIsRightEyeOpenProbability()));
+                fObject.put("similing", Float.toString(face.getIsSmilingProbability()));
+
+
+                // Following block constructs the rectangular points of the face.
+                float x = face.getPosition().x + face.getWidth() / 2.0f;
+                float y = face.getPosition().y + face.getHeight() / 2.0f;
+
+                xOffset = face.getWidth() / 2.0f;
+                yOffset = face.getHeight() / 2.0f;
+
+                left = x - xOffset;
+                top = y - yOffset;
+                right = x + xOffset;
+                bottom = y + yOffset;
+
+                JSONObject pt1 = new JSONObject();
+                JSONObject pt2 = new JSONObject();
+                pt1.put("x", Float.toString(left));
+                pt1.put("y", Float.toString(top));
+
+                pt2.put("x", Float.toString(right));
+                pt2.put("y", Float.toString(bottom));
+                fObject.put("facePt1", pt1);
+                fObject.put("facePt2", pt2);
+
+                faceArray.put(i, fObject);
             }
 
         } catch (JSONException e) {

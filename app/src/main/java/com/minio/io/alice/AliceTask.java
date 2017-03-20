@@ -21,6 +21,7 @@
 package com.minio.io.alice;
 
 import android.os.AsyncTask;
+import android.util.Log;
 import android.util.SparseArray;
 
 import com.google.android.gms.vision.Frame;
@@ -31,50 +32,47 @@ import com.google.android.gms.vision.face.Face;
  */
 
 public class AliceTask extends AsyncTask<Void, Integer, String> {
+    byte[] binaryData;
+    String textData;
+    boolean textMessage;
 
-
-    byte[] bufmat;
-    String data;
-    boolean textPayload = false;
-
-    public AliceTask(byte[] buf) {
-        bufmat = buf;
+    public AliceTask(byte[] data) {
+        this.binaryData = data;
     }
 
     public AliceTask(String data) {
-        this.data = data;
-        this.textPayload = true;
+        this.textMessage = true;
+        this.textData = data;
     }
 
     public AliceTask(Frame.Metadata metadata, SparseArray<Face> faces) {
-        this.textPayload = true;
-        this.data = new FrameMetaData(metadata,faces).toString();
+        this.textMessage = true;
+        this.textData = new FrameMetaData(metadata,faces).toString();
     }
-    @Override
-    protected void onPreExecute() {
 
-    }
+    @Override
+    protected void onPreExecute() {}
 
     @Override
     protected String doInBackground(Void ... params) {
-
-        if(MainActivity.webSocket != null) {
-            if (textPayload)
-                MainActivity.webSocket.sendPayload(data);
-            else
-                MainActivity.webSocket.sendPayload(bufmat);
+        if(MainActivity.webSocket == null) {
+            if (XDebug.LOG) {
+                Log.d(MainActivity.TAG, "Socket not connected");
+            }
+            return String.valueOf(R.string.COMPLETE);
         }
-        bufmat = null;
+
+        if (textMessage)
+            MainActivity.webSocket.sendPayload(textData);
+        else
+            MainActivity.webSocket.sendPayload(binaryData);
+
         return String.valueOf(R.string.COMPLETE);
 
     }
 
     @Override
-    protected void onCancelled() {
+    protected void onCancelled() {}
 
-    }
-
-    protected void onPostExecute(String finish) {
-
-    }
+    protected void onPostExecute(String finish) {}
 }

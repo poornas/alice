@@ -47,7 +47,7 @@ public class ClientWebSocket {
             Replace with the IP address of local xray server
             if needed.
         */
- 
+
         final String wsuri = "ws://147.75.201.195:80";
 
         final WebSocketOptions webSocketOptions = new WebSocketOptions();
@@ -102,6 +102,9 @@ public class ClientWebSocket {
 
     public void sendPayload(String payload) {
         if (mConnection.isConnected()) {
+            if (XDebug.LOG) {
+                Log.d(MainActivity.TAG, payload);
+            }
             mConnection.sendTextMessage(payload);
             payload = null;
         }

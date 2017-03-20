@@ -26,7 +26,7 @@ import com.google.android.gms.vision.Frame;
 import com.google.android.gms.vision.face.Face;
 
 /**
- * This is a wrapper around FaceDetector that captures meta data about frame and detected faces for the Xray server
+ * This is a wrapper around FaceDetector that captures meta data about frame and detected faces.
  */
 public class CustomFaceDetector extends Detector<Face> {
 
