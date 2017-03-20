@@ -84,7 +84,8 @@ public class FrameHandler implements Runnable {
         while (recording) {
             byte[] data = getFrame();
             if (data != null) {
-                serverHandler.sendVideoFrame(data, mPreviewSize.getWidth(), mPreviewSize.getHeight());
+                // Temporarily comment out code that sends actual frame to server.
+               // serverHandler.sendVideoFrame(data, mPreviewSize.getWidth(), mPreviewSize.getHeight());
             }
         }
 
