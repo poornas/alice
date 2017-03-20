@@ -21,7 +21,7 @@
 package com.minio.io.alice;
 
 import android.os.AsyncTask;
-
+import android.util.Log;
 
 /**
  * AsyncTask that sends the video buffer over to the Xray Server.
@@ -33,7 +33,8 @@ public class ServerResponseTask extends AsyncTask<Void, Void, Void> {
     CameraSourcePreview mPreview;
     GraphicOverlay mServerOverlay;
 
-    public ServerResponseTask(XrayResult xresult, GraphicOverlay serverOverlay, CameraSourcePreview preview) {
+
+   ServerResponseTask(XrayResult xresult, GraphicOverlay serverOverlay, CameraSourcePreview preview) {
         serverResult = xresult;
         mPreview =  preview;
         mServerOverlay = serverOverlay;
@@ -59,11 +60,15 @@ public class ServerResponseTask extends AsyncTask<Void, Void, Void> {
         return null;
     }
 
-    protected void onPostExecute(String finish) {
-        if (setZoom)
-            mPreview.increaseZoom(serverResult.getZoom());
+    @Override
+    protected void onPostExecute(Void aVoid) {
 
+        super.onPostExecute(aVoid);
+        if (setZoom) {
+            mPreview.increaseZoom(serverResult.getZoom());
+        }
         mServerOverlay.showScreen();
         mServerOverlay.postInvalidate();
     }
 }
+

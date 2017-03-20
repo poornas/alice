@@ -19,7 +19,6 @@
  */
 package com.minio.io.alice;
 
-import android.util.FloatProperty;
 import android.util.SparseArray;
 
 import com.google.android.gms.vision.Frame;
@@ -28,6 +27,7 @@ import com.google.android.gms.vision.face.Face;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
 
 /* Constructs a JSON object from the frame meta data and faces array for send to XRay
  *

@@ -41,10 +41,7 @@ public class IncomingReceiver extends BroadcastReceiver {
         if (msg != null) {
             if(XDebug.LOG)
                 Log.i(MainActivity.TAG, msg);
- 
-
-            MainActivity.serverReply = new XrayResult(msg);
- 
+            MainActivity.enqueueServerReply(new XrayResult(msg));
         }
     }
 }

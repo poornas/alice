@@ -72,6 +72,7 @@ public class MatVideoWriter {
             Type.Builder rgbaType = new Type.Builder(rs, Element.RGBA_8888(rs)).setX(width).setY(height);
             Allocation out = Allocation.createTyped(rs, rgbaType.create(), Allocation.USAGE_SCRIPT);
             in.copyFrom(nv21);
+            nv21 = null;
 
             yuvToRgbIntrinsic.setInput(in);
             yuvToRgbIntrinsic.forEach(out);
@@ -81,6 +82,7 @@ public class MatVideoWriter {
             out.copyTo(bitmap);
             ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
             bitmap.compress(Bitmap.CompressFormat.JPEG, 100, byteStream);
+            bitmap.recycle();
             return byteStream.toByteArray();
         }
 }

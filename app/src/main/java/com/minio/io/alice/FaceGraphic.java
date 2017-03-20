@@ -74,7 +74,7 @@ class FaceGraphic extends GraphicOverlay.Graphic {
         mBoxPaint.setStyle(Paint.Style.STROKE);
         mBoxPaint.setStrokeWidth(BOX_STROKE_WIDTH);
 
-        serverReply = serverReply;
+        this.serverReply = serverReply;
     }
 
     void setId(int id) {

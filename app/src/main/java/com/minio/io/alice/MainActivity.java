@@ -22,14 +22,11 @@ package com.minio.io.alice;
 
 import android.Manifest;
 import android.app.Activity;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.IBinder;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
@@ -54,19 +51,24 @@ import net.hockeyapp.android.UpdateManager;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 
 public class MainActivity extends Activity  implements PreviewCallback {
 
     public static ClientWebSocket webSocket = null;
     public static Context context;
     public static String TAG = "__ALICE__";
-    public static XrayResult serverReply;
 
     private static final int REQUEST_VIDEO_PERMISSIONS = 1;
     private boolean hasVideoPermission = false;
     private boolean hasLocationPermission = false;
 
-    boolean running = true;
+    boolean mServiceBound = false;
+    boolean serverThreadStarted = false;
+    boolean serverThreadRunning = false;
+    private static LinkedList<XrayResult> mServerReplyQueue;
+    private static final int MAX_BUFFER = 100;
+
     public static LocationTracker locationTracker;
 
     private static final String[] VIDEO_PERMISSIONS = {
@@ -110,15 +112,15 @@ public class MainActivity extends Activity  implements PreviewCallback {
             webSocket.connect(context);
         }
 
- 
         // Init media writers and location,sensor trackers
         serverhandler = new ServerHandler(context);
 
         // Spawn thread for handler for server response to Alice
         serverResponseHandler = new ServerResponseHandler();
         serverResponseThread = new Thread(serverResponseHandler);
+        mServerReplyQueue = new LinkedList<XrayResult>();
 
-        // Spawn thread for frame handler
+        //Spawn thread for frame handler
         initFrameHandler();
 
         requestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -161,6 +163,8 @@ public class MainActivity extends Activity  implements PreviewCallback {
     public void onPause() {
         super.onPause();
 
+        serverThreadRunning = false;
+
         cameraManager.pauseCameraResource();
         mPreview.stop();
         serverhandler.stop();
@@ -183,9 +187,15 @@ public class MainActivity extends Activity  implements PreviewCallback {
             webSocket = new ClientWebSocket();
             webSocket.connect(context);
         }
+        serverThreadRunning = true;
         cameraManager.startCameraSource();
         serverhandler.start();
         initFrameHandler();
+
+        if (!serverThreadStarted) {
+            serverThreadStarted = true;
+            serverResponseThread.start();
+        }
 
         checkForCrashes();
     }
@@ -197,6 +207,8 @@ public class MainActivity extends Activity  implements PreviewCallback {
         frameHandler.stopRecording();
         frameHandlerThread = null;
         serverhandler.stop();
+        serverResponseThread = null;
+        serverThreadRunning = false;
 
         cameraManager.releaseCameraResource();
         unregisterManagers();
@@ -273,16 +285,37 @@ public class MainActivity extends Activity  implements PreviewCallback {
     }
 
     private class ServerResponseHandler implements Runnable {
+
+        ServerResponseTask stask = null;
+
         public ServerResponseHandler() {
-            running = true;
         }
 
         @Override
         public void run() {
-            while (true) {
-                ServerResponseTask stask = new ServerResponseTask(serverReply, mGraphicOverlay, mPreview);
-                stask.execute();
+            while (serverThreadRunning ) {
+                XrayResult serverReply = dequeueServerReply();
+                if (serverReply != null) {
+                    stask = new ServerResponseTask(serverReply, mGraphicOverlay, mPreview);
+                    stask.execute();
+                }
             }
+        }
+    }
+
+    // Enqueue server messages.
+    public static void enqueueServerReply(XrayResult serverReply) {
+        synchronized (mServerReplyQueue) {
+            if (mServerReplyQueue.size() == MAX_BUFFER) {
+                mServerReplyQueue.poll();
+            }
+            mServerReplyQueue.add(serverReply);
+        }
+    }
+    //Poll mServerReplyQueue and process messages
+    public XrayResult dequeueServerReply() {
+        synchronized (mServerReplyQueue) {
+            return mServerReplyQueue.poll();
         }
     }
 
