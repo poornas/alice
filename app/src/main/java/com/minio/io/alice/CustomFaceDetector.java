@@ -19,6 +19,7 @@
  */
 package com.minio.io.alice;
 
+import android.os.SystemClock;
 import android.util.SparseArray;
 
 import com.google.android.gms.vision.Detector;
@@ -53,6 +54,8 @@ public class CustomFaceDetector extends Detector<Face> {
         try{
             faces = mDelegate.detect(frame);
             if (faces.size() > 0) {
+                MainActivity.isAliceAwake = true;
+                MainActivity.prevFaceDetectionAt = SystemClock.elapsedRealtime();
                 vTask = new AliceTask(frame.getMetadata(), faces.clone());
                 vTask.execute();
             }

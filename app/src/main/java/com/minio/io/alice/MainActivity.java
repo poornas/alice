@@ -27,6 +27,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
@@ -91,6 +92,12 @@ public class MainActivity extends Activity  implements PreviewCallback {
     ServerHandler serverhandler;
     private ServerResponseHandler serverResponseHandler;
     private Thread serverResponseThread;
+
+    public static boolean isAliceAwake = false;
+    public static long prevFaceDetectionAt = 0;
+    private long currentTime;
+    private static int ELAPSED_DURATION = 60000;  // 1 minute
+
     public MainActivity() {
         gestureDetector = new GestureDetector(context, new GestureListener());
         if (XDebug.LOG)
@@ -295,6 +302,7 @@ public class MainActivity extends Activity  implements PreviewCallback {
         public void run() {
             while (serverThreadRunning ) {
                 XrayResult serverReply = dequeueServerReply();
+                manageAliceDisplay();
                 if (serverReply != null) {
                     stask = new ServerResponseTask(serverReply, mGraphicOverlay, mPreview);
                     stask.execute();
@@ -319,6 +327,30 @@ public class MainActivity extends Activity  implements PreviewCallback {
         }
     }
 
+    private void manageAliceDisplay() {
+        currentTime = SystemClock.elapsedRealtime();
+        long timeElapsed = currentTime - prevFaceDetectionAt;
+        if (isAliceAwake && (timeElapsed > ELAPSED_DURATION)) {
+            isAliceAwake = false;
+        }
+
+        //Wake up Alice if currently invisible
+        if (isAliceAwake && !mPreview.isShown())
+            toggleDisplay(mPreview,View.VISIBLE);
+
+        //Blank display if Alice has not detected any face in ELAPSED_DURATION
+        if (!isAliceAwake && mPreview.isShown())
+            toggleDisplay(mPreview,View.INVISIBLE);
+    }
+
+    private void toggleDisplay(View view, int visibility) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                view.setVisibility(visibility);
+            }
+        });
+    }
     // Get Video Permissions
 
     /**
