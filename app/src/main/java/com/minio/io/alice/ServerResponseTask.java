@@ -21,10 +21,9 @@
 package com.minio.io.alice;
 
 import android.os.AsyncTask;
-import android.util.Log;
 
 /**
- * AsyncTask that sends the video buffer over to the Xray Server.
+ * AsyncTask that responds to server commands to zoom in.
  */
 
 public class ServerResponseTask extends AsyncTask<Void, Void, Void> {
@@ -47,13 +46,10 @@ public class ServerResponseTask extends AsyncTask<Void, Void, Void> {
     @Override
     protected Void doInBackground(Void ... params) {
         if (serverResult != null) {
-            if (serverResult.isReply() == true) {
+            if (serverResult.isReply()) {
                 // TODO: If zoom, increase zoom
-                if (serverResult.getZoom() != 0)
+                if (serverResult.getZoom() != 0) {
                     setZoom = true;
-
-                if (XDebug.LOG) {
-                    // TODO: This should be done only on server's command. Uncomment later.
                 }
             }
         }

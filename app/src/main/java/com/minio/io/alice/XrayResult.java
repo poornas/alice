@@ -63,6 +63,7 @@ public class XrayResult {
                 e.printStackTrace();
             }
         }
+        isReply = true;
     }
 
     public static boolean isReply() {
