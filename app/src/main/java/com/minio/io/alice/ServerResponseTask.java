@@ -52,8 +52,13 @@ public class ServerResponseTask extends AsyncTask<Void, Void, Void> {
                 // Fetch the frames from the frame handler.
                 FrameHandler mframeHandler = mainActivity.getFrameHandler();
                 if (mframeHandler != null) {
-                    new ServerUploadClient(serverResult,
-                            mframeHandler.getFrame()).upload();
+                    // Image data can be null when getFrame() is
+                    // initiated when there are no frames on the
+                    // linked list.
+                    byte[] imageData = mframeHandler.getFrame();
+                    if (imageData != null) {
+                        new ServerUploadClient(serverResult, imageData).upload();
+                    }
                 }
                 if (serverResult.getZoom() != 0)
                     setZoom = true;
@@ -64,7 +69,6 @@ public class ServerResponseTask extends AsyncTask<Void, Void, Void> {
 
     @Override
     protected void onPostExecute(Void aVoid) {
-
         super.onPostExecute(aVoid);
         if (setZoom) {
             mPreview.increaseZoom(serverResult.getZoom());
