@@ -19,12 +19,18 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.graphics.ImageFormat;
 import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
 import android.hardware.Camera.CameraInfo;
 import android.os.Build;
 import android.os.SystemClock;
+import android.renderscript.Allocation;
+import android.renderscript.Element;
+import android.renderscript.RenderScript;
+import android.renderscript.ScriptIntrinsicYuvToRGB;
+import android.renderscript.Type;
 import android.support.annotation.Nullable;
 import android.support.annotation.RequiresPermission;
 import android.support.annotation.StringDef;
@@ -761,7 +767,6 @@ public class CameraSource {
         }
         Size pictureSize = sizePair.pictureSize();
         mPreviewSize = sizePair.previewSize();
-        mFrameHandler.setPreviewSize(mPreviewSize);
         int[] previewFpsRange = selectPreviewFpsRange(camera, mRequestedFps);
         if (previewFpsRange == null) {
             throw new RuntimeException("Could not find suitable preview frames per second range.");
@@ -1072,7 +1077,6 @@ public class CameraSource {
     private class CameraPreviewCallback implements Camera.PreviewCallback {
         @Override
         public void onPreviewFrame(byte[] data, Camera camera) {
-            mFrameHandler.addFramesToQueue(data);
             mFrameProcessor.setNextFrame(data, camera);
         }
     }
@@ -1195,9 +1199,25 @@ public class CameraSource {
                         return;
                     }
 
+                    // Uses Renderscript intrinsic function to convert from NV21 image format to RGBA_8888
+                    RenderScript rs = RenderScript.create(mContext);
+                    ScriptIntrinsicYuvToRGB yuvToRgbIntrinsic = ScriptIntrinsicYuvToRGB.create(rs, Element.U8_4(rs));
+                    Type.Builder yuvType = new Type.Builder(rs, Element.U8(rs)).setX(mPendingFrameData.remaining());
+                    Allocation in = Allocation.createTyped(rs, yuvType.create(), Allocation.USAGE_SCRIPT);
+                    Type.Builder rgbaType = new Type.Builder(rs, Element.RGBA_8888(rs)).setX(mPreviewSize.getWidth()).setY(mPreviewSize.getHeight());
+                    Allocation out = Allocation.createTyped(rs, rgbaType.create(), Allocation.USAGE_SCRIPT);
+                    in.copyFrom(mPendingFrameData.array());
+
+                    yuvToRgbIntrinsic.setInput(in);
+                    yuvToRgbIntrinsic.forEach(out);
+
+                    // Convert RGBA_8888 to ARGB_8888 compressed JPEG format
+                    Bitmap bitmap = Bitmap.createBitmap(mPreviewSize.getWidth(),
+                            mPreviewSize.getHeight(), Bitmap.Config.ARGB_8888);
+                    out.copyTo(bitmap);
+
                     outputFrame = new Frame.Builder()
-                            .setImageData(mPendingFrameData, mPreviewSize.getWidth(),
-                                    mPreviewSize.getHeight(), ImageFormat.NV21)
+                            .setBitmap(bitmap)
                             .setId(mPendingFrameId)
                             .setTimestampMillis(mPendingTimeMillis)
                             .setRotation(mRotation)

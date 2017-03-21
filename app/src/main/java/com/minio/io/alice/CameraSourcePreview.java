@@ -112,7 +112,6 @@ public class CameraSourcePreview extends ViewGroup {
 
             mCameraSource.getCamera().setParameters(params);
             serverHandler.start();
-            frameHandler.startRecording();
 
             if (!frameHandlerThread.isAlive())
                 frameHandlerThread.start();

@@ -20,14 +20,9 @@
 
 package com.minio.io.alice;
 
-import android.os.AsyncTask;
-
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.io.IOException;
 
-import okhttp3.MultipartBody;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
@@ -38,7 +33,7 @@ import okhttp3.Response;
  * server in background.
  */
 
-public class ServerUploadTask extends AsyncTask<Void, Void, Void> {
+public class ServerUploadClient extends  OkHttpClient {
 
     // Buffer to hold current image data.
     byte[] imageData;
@@ -47,48 +42,24 @@ public class ServerUploadTask extends AsyncTask<Void, Void, Void> {
     // of presigned POST policy parameters.
     XrayResult serverResult;
 
-    // Initialize a new http client per task.
-    private final OkHttpClient client = new OkHttpClient();
-
-    public ServerUploadTask(XrayResult xresult, byte[] imgData) {
+    public ServerUploadClient(XrayResult xresult, byte[] imgData) {
         serverResult = xresult;
         imageData = imgData;
     }
 
-    @Override
-    protected void onPreExecute() {}
-
-    @Override
-    protected Void doInBackground(Void... params) {
+    public void upload() {
         if (serverResult != null) {
             String url = serverResult.getPresignedURL();
-            final JSONObject formData = serverResult.getPresignedFormData();
-
-            if (formData != null) {
-                final MultipartBody.Builder multipartBuilder = new MultipartBody.Builder();
-                multipartBuilder.setType(MultipartBody.FORM);
-
-                formData.keys().forEachRemaining(k ->
-                {
-                    try {
-                        multipartBuilder.addFormDataPart(k, formData.getString(k));
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
-                });
-
-                multipartBuilder.addFormDataPart("file", "alice.jpg",
-                        RequestBody.create(null, imageData));
-                RequestBody requestBody = multipartBuilder.build();
-
+            if (url != null && !url.isEmpty()) {
+                RequestBody requestBody = RequestBody.create(null, imageData);
                 Request request = new Request.Builder()
                         .url(url)
-                        .post(requestBody)
+                        .put(requestBody)
                         .build();
 
                 Response response = null;
                 try {
-                    response = client.newCall(request).execute();
+                    response = newCall(request).execute();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -104,6 +75,5 @@ public class ServerUploadTask extends AsyncTask<Void, Void, Void> {
                 imageData = null;
             }
         }
-        return null;
     }
 }

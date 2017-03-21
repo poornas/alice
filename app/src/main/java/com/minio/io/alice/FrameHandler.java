@@ -21,11 +21,10 @@
 package com.minio.io.alice;
 
 
-import android.content.Context;
-
-import com.google.android.gms.common.images.Size;
-
+import android.graphics.Bitmap;
+import java.io.ByteArrayOutputStream;
 import java.util.LinkedList;
+
 
 /*
  This  handler's only job is to get frames from the CameraSource and store in a queue.
@@ -33,32 +32,11 @@ import java.util.LinkedList;
  XRay server
   */
 public class FrameHandler implements Runnable {
-    private LinkedList<byte[]> mQueue ;
-    private static final int MAX_BUFFER = 100;
-    private Context context;
-    private boolean recording = false;
+    private LinkedList<byte[]> mQueue;
+    private static final int MAX_BUFFER = 250;
 
-    private MainActivity main_activity;
-    private ServerHandler serverHandler;
-    private Size mPreviewSize;
-
-    public FrameHandler(Context context) {
-        this.context = context;
-        mQueue = new LinkedList<byte[]>();
-        main_activity = (MainActivity) context;
-        serverHandler = main_activity.getServerHandler();
-    }
-
-    public void stopRecording() {
-        this.recording = false;
-    }
-
-    public void startRecording() {
-        this.recording = true;
-    }
-
-    public void setPreviewSize(Size size) {
-        mPreviewSize = size;
+    public FrameHandler() {
+        mQueue = new LinkedList<>();
     }
 
     // Enqueue frames received from camera.
@@ -71,6 +49,16 @@ public class FrameHandler implements Runnable {
         }
     }
 
+    // Converts Android's NV21 image format to RGBA_8888, and then
+    // to the compressed JPEG format recognized by the server
+    public byte[] yuv2JPEG(Bitmap bmp) {
+        // Convert RGBA_8888 to ARGB_8888 compressed JPEG format
+        ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
+        bmp.compress(Bitmap.CompressFormat.JPEG, 100, byteStream);
+        bmp.recycle();
+        return byteStream.toByteArray();
+    }
+
     // Poll queue for new frames
     public byte[] getFrame() {
         synchronized (mQueue) {
@@ -80,14 +68,5 @@ public class FrameHandler implements Runnable {
 
     // Send incoming frames to serverHandler.
     @Override
-    public void run() {
-        while (recording) {
-            byte[] data = getFrame();
-            if (data != null) {
-                // Temporarily comment out code that sends actual frame to server.
-               // serverHandler.sendVideoFrame(data, mPreviewSize.getWidth(), mPreviewSize.getHeight());
-            }
-        }
-
-    }
+    public void run() {}
 }

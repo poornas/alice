@@ -26,8 +26,8 @@ import org.json.JSONObject;
 // This class is populated when server sends data. It needs a lot of improvement.
 public class XrayResult {
     private String presignedURL;
-    private JSONObject presignedFormData;
     private int zoom;
+    private Integer frameId;
 
     JSONObject replyObject = null;
     private static boolean isReply = false;
@@ -40,28 +40,21 @@ public class XrayResult {
         }
 
         try {
+            setFrameId(replyObject.getInt("FrameId"));
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        try {
             setZoom(replyObject.getInt("Zoom"));
         } catch (JSONException e) {
             e.printStackTrace();
         }
 
-        if (!replyObject.isNull("Presigned")) {
-            JSONObject presignedObj = null;
-            try {
-                presignedObj = replyObject.getJSONObject("Presigned");
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-            try {
-                setPresignedURL(presignedObj.getString("URL"));
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-            try {
-                setPresignedFormData(presignedObj.getJSONObject("FormData"));
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
+        try {
+            setPresignedURL(replyObject.getString("URL"));
+        } catch (JSONException e) {
+            e.printStackTrace();
         }
         isReply = true;
     }
@@ -69,6 +62,10 @@ public class XrayResult {
     public static boolean isReply() {
         return isReply;
     }
+
+    public Integer getFrameId() { return frameId; }
+
+    public void setFrameId(int id) { this.frameId = Integer.valueOf(id); }
 
     public int getZoom() {
         return zoom;
@@ -86,11 +83,4 @@ public class XrayResult {
         return this.presignedURL;
     }
 
-    public void setPresignedFormData(JSONObject formData) {
-        this.presignedFormData = formData;
-    }
-
-    public JSONObject getPresignedFormData() {
-        return this.presignedFormData;
-    }
 }

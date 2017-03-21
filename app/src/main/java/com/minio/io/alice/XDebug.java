@@ -25,5 +25,5 @@ package com.minio.io.alice;
 
 public class XDebug {
     // set this to true during development only.
-    public  static  final boolean LOG = false;
+    public static final boolean LOG = false;
 }

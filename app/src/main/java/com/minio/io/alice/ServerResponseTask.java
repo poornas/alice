@@ -20,6 +20,7 @@
 
 package com.minio.io.alice;
 
+import android.content.Context;
 import android.os.AsyncTask;
 
 /**
@@ -31,13 +32,14 @@ public class ServerResponseTask extends AsyncTask<Void, Void, Void> {
     boolean setZoom = false;
     CameraSourcePreview mPreview;
     GraphicOverlay mServerOverlay;
+    MainActivity mainActivity;
 
-
-   ServerResponseTask(XrayResult xresult, GraphicOverlay serverOverlay, CameraSourcePreview preview) {
-        serverResult = xresult;
-        mPreview =  preview;
-        mServerOverlay = serverOverlay;
-    }
+   ServerResponseTask(Context context, XrayResult xresult, GraphicOverlay serverOverlay, CameraSourcePreview preview) {
+       mainActivity = (MainActivity) context;
+       serverResult = xresult;
+       mServerOverlay = serverOverlay;
+       mPreview =  preview;
+   }
 
 
     @Override
@@ -46,11 +48,15 @@ public class ServerResponseTask extends AsyncTask<Void, Void, Void> {
     @Override
     protected Void doInBackground(Void ... params) {
         if (serverResult != null) {
-            if (serverResult.isReply()) {
-                // TODO: If zoom, increase zoom
-                if (serverResult.getZoom() != 0) {
-                    setZoom = true;
+            if (serverResult.isReply() == true) {
+                // Fetch the frames from the frame handler.
+                FrameHandler mframeHandler = mainActivity.getFrameHandler();
+                if (mframeHandler != null) {
+                    new ServerUploadClient(serverResult,
+                            mframeHandler.getFrame()).upload();
                 }
+                if (serverResult.getZoom() != 0)
+                    setZoom = true;
             }
         }
         return null;
@@ -67,4 +73,3 @@ public class ServerResponseTask extends AsyncTask<Void, Void, Void> {
         mServerOverlay.postInvalidate();
     }
 }
-

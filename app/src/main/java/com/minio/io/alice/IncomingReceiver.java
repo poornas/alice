@@ -31,12 +31,10 @@ import android.util.Log;
 
 public class IncomingReceiver extends BroadcastReceiver {
 
-    public IncomingReceiver() {
-    }
+    public IncomingReceiver() {}
 
     @Override
     public void onReceive(Context context, Intent intent) {
-
         String msg = intent.getStringExtra(String.valueOf(R.string.xray_broadcast));
         if (msg != null) {
             if(XDebug.LOG)

@@ -19,6 +19,7 @@
  */
 package com.minio.io.alice;
 
+import android.content.Context;
 import android.os.SystemClock;
 import android.util.SparseArray;
 
@@ -33,10 +34,13 @@ public class CustomFaceDetector extends Detector<Face> {
 
     private Detector<Face> mDelegate;
     private AliceTask vTask;
+    private MainActivity mainActivity;
+
     /**
      * Creates a custom face detector to wrap around underlying face detector
      */
-    public CustomFaceDetector(Detector<Face> delegate) {
+    public CustomFaceDetector(Context context, Detector<Face> delegate) {
+        mainActivity = (MainActivity) context;
         mDelegate = delegate;
     }
 
@@ -56,8 +60,12 @@ public class CustomFaceDetector extends Detector<Face> {
             if (faces.size() > 0) {
                 MainActivity.isAliceAwake = true;
                 MainActivity.prevFaceDetectionAt = SystemClock.elapsedRealtime();
+
                 vTask = new AliceTask(frame.getMetadata(), faces.clone());
                 vTask.execute();
+
+                FrameHandler mFrameHandler = mainActivity.getFrameHandler();
+                mFrameHandler.addFramesToQueue(mFrameHandler.yuv2JPEG(frame.getBitmap()));
             }
         } catch (Exception e) {
             throw e;

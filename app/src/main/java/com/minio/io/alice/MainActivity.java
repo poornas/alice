@@ -68,7 +68,7 @@ public class MainActivity extends Activity  implements PreviewCallback {
     boolean serverThreadStarted = false;
     boolean serverThreadRunning = false;
     private static LinkedList<XrayResult> mServerReplyQueue;
-    private static final int MAX_BUFFER = 100;
+    private static final int MAX_BUFFER = 250;
 
     public static LocationTracker locationTracker;
 
@@ -165,6 +165,7 @@ public class MainActivity extends Activity  implements PreviewCallback {
         return this.frameHandlerThread;
     }
 
+    protected CameraSourcePreview getPreviewSize() { return this.mPreview; }
 
     @Override
     public void onPause() {
@@ -181,7 +182,7 @@ public class MainActivity extends Activity  implements PreviewCallback {
     //Spawns a new Framehandler thread
     private void initFrameHandler() {
         if (frameHandlerThread == null) {
-            frameHandler = new FrameHandler(context);
+            frameHandler = new FrameHandler();
             frameHandlerThread = new Thread(frameHandler);
         }
     }
@@ -211,7 +212,6 @@ public class MainActivity extends Activity  implements PreviewCallback {
 
         super.onDestroy();
 
-        frameHandler.stopRecording();
         frameHandlerThread = null;
         serverhandler.stop();
         serverResponseThread = null;
@@ -304,7 +304,7 @@ public class MainActivity extends Activity  implements PreviewCallback {
                 XrayResult serverReply = dequeueServerReply();
                 manageAliceDisplay();
                 if (serverReply != null) {
-                    stask = new ServerResponseTask(serverReply, mGraphicOverlay, mPreview);
+                    stask = new ServerResponseTask(context, serverReply, mGraphicOverlay, mPreview);
                     stask.execute();
                 }
             }
@@ -313,6 +313,8 @@ public class MainActivity extends Activity  implements PreviewCallback {
 
     // Enqueue server messages.
     public static void enqueueServerReply(XrayResult serverReply) {
+        if (mServerReplyQueue == null)
+            return;
         synchronized (mServerReplyQueue) {
             if (mServerReplyQueue.size() == MAX_BUFFER) {
                 mServerReplyQueue.poll();

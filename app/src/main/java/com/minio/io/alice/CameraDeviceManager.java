@@ -48,7 +48,6 @@ public class CameraDeviceManager {
     private boolean isCameraIdSet;
 
     public CameraDeviceManager(Context context,MultiProcessor.Factory<Face> faceTrackerFactory,FrameHandler handler) {
-
         this.context = context;
         this.graphicFaceTrackerFactory = faceTrackerFactory;
         this.mframeHandler = handler;
@@ -77,7 +76,7 @@ public class CameraDeviceManager {
                 .build();
 
         //Custom face detector to grab metadata.
-        Detector<Face> customFaceDetector = new CustomFaceDetector(detector);
+        Detector<Face> customFaceDetector = new CustomFaceDetector(context, detector);
         customFaceDetector.setProcessor(
                 new MultiProcessor.Builder<>(this.graphicFaceTrackerFactory)
                         .build());
@@ -97,7 +96,7 @@ public class CameraDeviceManager {
         mCameraSource = new CameraSource.Builder(context, customFaceDetector)
                 .setRequestedPreviewSize(1080, 720)
                 .setFacing(cameraId)
-                .setRequestedFps(30.0f)
+                .setRequestedFps(25.0f)
                 .setFrameHandler(mframeHandler)
                 .build();
     }
