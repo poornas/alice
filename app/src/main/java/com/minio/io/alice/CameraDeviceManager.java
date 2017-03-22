@@ -21,6 +21,7 @@
 package com.minio.io.alice;
 
 import android.content.Context;
+import android.hardware.Camera;
 import android.util.Log;
 
 import com.google.android.gms.vision.Detector;
@@ -98,6 +99,7 @@ public class CameraDeviceManager {
                 .setFacing(cameraId)
                 .setRequestedFps(25.0f)
                 .setFrameHandler(mframeHandler)
+                .setFocusMode(Camera.Parameters.FOCUS_MODE_MACRO)
                 .build();
     }
 
