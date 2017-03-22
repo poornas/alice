@@ -60,7 +60,7 @@ public class CustomFaceDetector extends Detector<Face> {
             if (faces.size() > 0) {
                 MainActivity.isAliceAwake = true;
                 MainActivity.prevFaceDetectionAt = SystemClock.elapsedRealtime();
-
+                
                 vTask = new AliceTask(frame.getMetadata(), faces.clone());
                 vTask.execute();
 

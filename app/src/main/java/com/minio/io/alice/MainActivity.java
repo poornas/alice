@@ -83,12 +83,13 @@ public class MainActivity extends Activity  implements PreviewCallback {
     private CameraSourcePreview mPreview;
     private GraphicOverlay mGraphicOverlay;
 
-    private static int mCameraId = CameraSource.CAMERA_FACING_FRONT;
+    private static int mCameraId = CameraSource.CAMERA_FACING_BACK;
 
     private CameraDeviceManager cameraManager;
 
     Thread frameHandlerThread;
     FrameHandler frameHandler;
+    public static boolean frameHandlerStarted = false;
     ServerHandler serverhandler;
     private ServerResponseHandler serverResponseHandler;
     private Thread serverResponseThread;
@@ -191,6 +192,7 @@ public class MainActivity extends Activity  implements PreviewCallback {
     public void onResume() {
 
         super.onResume();
+        
         if (webSocket == null) {
             webSocket = new ClientWebSocket();
             webSocket.connect(context);

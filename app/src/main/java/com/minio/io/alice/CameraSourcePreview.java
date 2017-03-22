@@ -102,19 +102,23 @@ public class CameraSourcePreview extends ViewGroup {
     }
 
     private void startIfReady() throws IOException {
+
         if (mStartRequested && mSurfaceAvailable) {
 
             mCameraSource.start(mSurfaceView.getHolder());
             Camera.Parameters params = mCameraSource.getCamera().getParameters();
             if (params.isZoomSupported())
                 enableZoomControls(params);
+
             seekBar.setVisibility(View.GONE);
 
             mCameraSource.getCamera().setParameters(params);
             serverHandler.start();
 
-            if (!frameHandlerThread.isAlive())
+            if (!MainActivity.frameHandlerStarted) {
+                MainActivity.frameHandlerStarted = true;
                 frameHandlerThread.start();
+            }
             if (mOverlay != null) {
                 Size size = mCameraSource.getPreviewSize();
                 int min = Math.min(size.getWidth(), size.getHeight());
@@ -225,7 +229,9 @@ public class CameraSourcePreview extends ViewGroup {
         return false;
     }
     public void increaseZoom(int zoomdiff) {
-        seekBar.incrementProgressBy(zoomdiff);
+        //Band aid for rotation issue - wait until camera surface is ready
+        if (mSurfaceAvailable)
+             seekBar.incrementProgressBy(zoomdiff);
     }
 
     public void resetZoom() {
@@ -244,9 +250,10 @@ public class CameraSourcePreview extends ViewGroup {
                 // TODO Auto-generated method stub
                 progressvalue = progress;
                 Camera.Parameters params = mCameraSource.getCamera().getParameters();
-                params.setZoom(progress);
-                mCameraSource.getCamera().setParameters(params);
-
+                if (params != null) {
+                    params.setZoom(progress);
+                    mCameraSource.getCamera().setParameters(params);
+                }
 
             }
 
