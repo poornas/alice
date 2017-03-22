@@ -336,6 +336,7 @@ public class MainActivity extends Activity  implements PreviewCallback {
         long timeElapsed = currentTime - prevFaceDetectionAt;
         if (isAliceAwake && (timeElapsed > ELAPSED_DURATION)) {
             isAliceAwake = false;
+            resetZoom(mPreview);
         }
 
         //Wake up Alice if currently invisible
@@ -352,6 +353,15 @@ public class MainActivity extends Activity  implements PreviewCallback {
             @Override
             public void run() {
                 view.setVisibility(visibility);
+            }
+        });
+    }
+
+    private void resetZoom(final CameraSourcePreview preview) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                preview.resetZoom();
             }
         });
     }
