@@ -34,6 +34,7 @@ import android.renderscript.Type;
 import android.support.annotation.Nullable;
 import android.support.annotation.RequiresPermission;
 import android.support.annotation.StringDef;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Surface;
 import android.view.SurfaceHolder;
@@ -1211,8 +1212,14 @@ public class CameraSource {
                     yuvToRgbIntrinsic.setInput(in);
                     yuvToRgbIntrinsic.forEach(out);
 
-                    // Convert RGBA_8888 to ARGB_8888 compressed JPEG format
-                    Bitmap bitmap = Bitmap.createBitmap(mPreviewSize.getWidth(),
+                    WindowManager windowManager =
+                            (WindowManager) mContext.getSystemService(Context.WINDOW_SERVICE);
+
+                    DisplayMetrics metrics = new DisplayMetrics();
+                    windowManager.getDefaultDisplay().getMetrics(metrics);
+
+                    // Create a new bitmap.
+                    Bitmap bitmap = Bitmap.createBitmap(metrics, mPreviewSize.getWidth(),
                             mPreviewSize.getHeight(), Bitmap.Config.ARGB_8888);
                     out.copyTo(bitmap);
 

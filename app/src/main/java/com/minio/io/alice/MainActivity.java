@@ -68,7 +68,7 @@ public class MainActivity extends Activity  implements PreviewCallback {
     boolean serverThreadStarted = false;
     boolean serverThreadRunning = false;
     private static LinkedList<XrayResult> mServerReplyQueue;
-    private static final int MAX_BUFFER = 250;
+    private static final int MAX_BUFFER = 50;
 
     public static LocationTracker locationTracker;
 
@@ -347,7 +347,7 @@ public class MainActivity extends Activity  implements PreviewCallback {
             toggleDisplay(mPreview,View.INVISIBLE);
     }
 
-    private void toggleDisplay(View view, int visibility) {
+    private void toggleDisplay(final View view, final int visibility) {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {

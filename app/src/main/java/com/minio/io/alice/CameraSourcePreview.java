@@ -39,7 +39,7 @@ public class CameraSourcePreview extends ViewGroup {
     private boolean mStartRequested;
     private boolean mSurfaceAvailable;
     private CameraSource mCameraSource;
-    private MainActivity main_activity;
+    private MainActivity mainActivity;
     private ServerHandler serverHandler;
     private FrameHandler frameHandler;
     private Thread frameHandlerThread;
@@ -53,10 +53,10 @@ public class CameraSourcePreview extends ViewGroup {
     public CameraSourcePreview(Context context, AttributeSet attrs) {
         super(context, attrs);
         mContext = context;
-        main_activity = (MainActivity) context;
-        serverHandler = main_activity.getServerHandler();
-        frameHandler = main_activity.getFrameHandler();
-        frameHandlerThread = main_activity.getFrameHandlerThread();
+        mainActivity = (MainActivity) context;
+        serverHandler = mainActivity.getServerHandler();
+        frameHandler = mainActivity.getFrameHandler();
+        frameHandlerThread = mainActivity.getFrameHandlerThread();
         mStartRequested = false;
         mSurfaceAvailable = false;
 

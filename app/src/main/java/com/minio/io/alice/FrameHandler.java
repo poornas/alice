@@ -33,7 +33,7 @@ import java.util.LinkedList;
   */
 public class FrameHandler implements Runnable {
     private LinkedList<byte[]> mQueue;
-    private static final int MAX_BUFFER = 250;
+    private static final int MAX_BUFFER = 50;
 
     public FrameHandler() {
         mQueue = new LinkedList<>();

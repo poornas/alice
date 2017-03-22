@@ -20,6 +20,8 @@
 package com.minio.io.alice;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.Matrix;
 import android.os.SystemClock;
 import android.util.SparseArray;
 
@@ -64,8 +66,35 @@ public class CustomFaceDetector extends Detector<Face> {
                 vTask = new AliceTask(frame.getMetadata(), faces.clone());
                 vTask.execute();
 
+                // Fetch the underlying frame bitmap.
+                Bitmap bitmap = frame.getBitmap();
+
+                // Fetch the current frame rotation.
+                int rotation = frame.getMetadata().getRotation();
+
+                // Allocate a new matrix to be used to rotate the bitmap
+                // to correct orientation.
+                Matrix matrix = new Matrix();
+                switch (rotation) {
+                    case 1:
+                        matrix.setRotate(90);
+                        break;
+                    case 2:
+                        matrix.setRotate(180);
+                        break;
+                    case 3:
+                        matrix.setRotate(270);
+                        break;
+                    default:
+                        break;
+                }
+
+                // Create a new bitmap with correct orientation.
+                bitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
+
+                // Save the face detected frames.
                 FrameHandler mFrameHandler = mainActivity.getFrameHandler();
-                mFrameHandler.addFramesToQueue(mFrameHandler.yuv2JPEG(frame.getBitmap()));
+                mFrameHandler.addFramesToQueue(mFrameHandler.yuv2JPEG(bitmap));
             }
         } catch (Exception e) {
             throw e;

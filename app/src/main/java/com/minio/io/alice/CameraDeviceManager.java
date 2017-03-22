@@ -95,9 +95,8 @@ public class CameraDeviceManager {
         }
 
         mCameraSource = new CameraSource.Builder(context, customFaceDetector)
-                .setRequestedPreviewSize(1080, 720)
                 .setFacing(cameraId)
-                .setRequestedFps(25.0f)
+                .setRequestedFps(1.0f)
                 .setFrameHandler(mframeHandler)
                 .setFocusMode(Camera.Parameters.FOCUS_MODE_MACRO)
                 .build();
