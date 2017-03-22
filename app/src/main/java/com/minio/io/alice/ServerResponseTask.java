@@ -71,7 +71,7 @@ public class ServerResponseTask extends AsyncTask<Void, Void, Void> {
     protected void onPostExecute(Void aVoid) {
         super.onPostExecute(aVoid);
         if (setZoom) {
-            mPreview.increaseZoom(serverResult.getZoom());
+            //mPreview.increaseZoom(serverResult.getZoom());
         }
         mServerOverlay.showScreen();
         mServerOverlay.postInvalidate();

@@ -271,4 +271,5 @@ public class CameraSourcePreview extends ViewGroup {
         });
 
     }
+
 }

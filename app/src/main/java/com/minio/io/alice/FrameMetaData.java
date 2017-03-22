@@ -40,6 +40,7 @@ public class FrameMetaData {
 
     private JSONObject metaMap;
 
+
     public FrameMetaData(Frame.Metadata metadata, SparseArray<Face> facesArray) {
 
         try {
@@ -124,10 +125,12 @@ public class FrameMetaData {
         } catch (JSONException e) {
             e.printStackTrace();
         }
+
         return faceArray;
     }
 
     public String toString() {
         return metaMap.toString();
     }
+
 }

@@ -41,6 +41,7 @@ public class CameraDeviceManager {
 
     private static int mCameraId;
     private Context context;
+    private MainActivity mainActivity;
     private CameraSource mCameraSource;
     private static final int RC_HANDLE_GMS = 9001;
     private MultiProcessor.Factory<Face> graphicFaceTrackerFactory;
@@ -50,6 +51,7 @@ public class CameraDeviceManager {
 
     public CameraDeviceManager(Context context,MultiProcessor.Factory<Face> faceTrackerFactory,FrameHandler handler) {
         this.context = context;
+        this.mainActivity = (MainActivity) context;
         this.graphicFaceTrackerFactory = faceTrackerFactory;
         this.mframeHandler = handler;
         callback = (MainActivity)context;
